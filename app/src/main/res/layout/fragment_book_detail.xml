@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".view.MainActivity">
+
+    <data>
+        <variable name="isLoading" type="boolean" />
+        <variable name="book" type="net.edgwbs.bookstorage.model.Book" />
+    </data>
+
+    <LinearLayout
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        >
+        <net.edgwbs.bookstorage.utils.FontAwesomeTextView
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:solid_icon="true"
+            android:text="@string/fa_chevron_left_solid"
+            android:textColor="@color/colorGray4"
+            android:textSize="20sp"
+            android:layout_margin="20dp"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:visibleGone="@{isLoading}">
+            <include layout="@layout/progress_loading"/>
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="@drawable/shape_rounded_corners_10dp"
+            app:visibleGone="@{!isLoading}"
+            >
+            <LinearLayout
+                android:id="@+id/linearLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/linearLayout2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    >
+                    <LinearLayout
+                        android:id="@+id/linearLayout3"
+                        android:layout_height="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_weight="2"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:id="@+id/book_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:text="@{book.title}"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/book_author"
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content"
+                            android:text="@{book.Author.name}"
+                            android:gravity="center_vertical"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:textSize="12sp" />
+                        <TextView
+                            android:id="@+id/book_publisher"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@{book.Publisher.name}"
+                            android:gravity="center_vertical"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/book_image"
+                        android:layout_height="128dp"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        app:srcCompat="@android:drawable/sym_def_app_icon" />
+                </LinearLayout>
+
+                <include layout="@layout/vidider" />
+
+                <LinearLayout
+                    android:id="@+id/linearLayout4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    android:orientation="vertical"
+                    android:paddingTop="20dp"
+                    android:paddingBottom="20dp"
+                    android:paddingLeft="20dp"
+                    android:paddingRight="20dp"
+                    >
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="0dp"
+                        android:orientation="horizontal">
+                        <LinearLayout
+                            android:id="@+id/book_state"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="0dp"
+                            android:orientation="vertical"
+                            android:layout_weight="2"
+                            >
+                            <net.edgwbs.bookstorage.utils.FontAwesomeButtonView
+                                android:id="@+id/book_state_icon"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:solid_icon="true"
+                                android:text="@string/fa_book_open_solid"
+                                android:textColor="@color/colorPrimary"
+                                android:textSize="35sp"
+                                android:layout_margin="0dp"
+                                android:gravity="center_horizontal"
+                                />
+                            <TextView
+                                android:id="@+id/state_text"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:textSize="12sp"
+                                android:text="未読"
+                                android:gravity="center_horizontal"
+                                />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/start_at"
+                            android:layout_height="match_parent"
+                            android:layout_width="0dp"
+                            android:layout_weight="3"
+                            android:textSize="12sp"
+                            android:text=""
+                            android:gravity="center"
+                            />
+                        <TextView
+                            android:layout_height="match_parent"
+                            android:layout_width="0dp"
+                            android:textSize="12sp"
+                            android:layout_weight="1"
+                            android:text="〜"
+                            android:gravity="center"
+                            />
+                        <TextView
+                            android:id="@+id/end_at"
+                            android:layout_height="match_parent"
+                            android:layout_width="0dp"
+                            android:layout_weight="3"
+                            android:textSize="12sp"
+                            android:text=""
+                            android:gravity="center"
+                            />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <include layout="@layout/vidider" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:textSize="12dp"
+                    android:text="share"/>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+
+</layout>

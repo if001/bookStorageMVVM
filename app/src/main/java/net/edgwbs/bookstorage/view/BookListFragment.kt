@@ -24,6 +24,7 @@ import kotlinx.android.synthetic.main.nav_item.view.*
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
 import net.edgwbs.bookstorage.model.Book
+import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookListViewModel
 
 class BookListFragment : Fragment() {
@@ -35,6 +36,16 @@ class BookListFragment : Fragment() {
 
     private val bookClickCallback = object: BookClickCallback {
         override fun onClick(book: Book) {
+            val bundle = Bundle()
+            bundle.putString(FragmentConstBookID, book.id.toString())
+            val fragment = BookDetailFragment()
+            fragment.arguments = bundle
+
+            val transaction = fragmentManager?.beginTransaction()
+            transaction?.let {
+                it.addToBackStack(null)
+                it.replace(R.id.fragment_container, fragment).commit()
+            }
         }
     }
 
@@ -84,7 +95,6 @@ class BookListFragment : Fragment() {
 
         // setSupportActionBar(toolbar)
         val toggle = ActionBarDrawerToggle(activity, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        Log.d("hogehoge", drawerLayout.toString())
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 

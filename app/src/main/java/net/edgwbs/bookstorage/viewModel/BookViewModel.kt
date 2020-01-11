@@ -8,23 +8,25 @@ import kotlinx.coroutines.launch
 import net.edgwbs.bookstorage.model.Book
 import net.edgwbs.bookstorage.model.BookRepository
 
-class BookListViewModel(application: Application): AndroidViewModel(application) {
-    private val repository:BookRepository = BookRepository.instance
-    private var bookListLiveData: MutableLiveData<List<Book>> = MutableLiveData()
+class BookViewModel(application: Application): AndroidViewModel(application) {
+    private val repository: BookRepository = BookRepository.instance
+    private var bookLiveData: MutableLiveData<Book> = MutableLiveData()
 
 
     init {
-        loadBookList()
+        // loadBook()
     }
 
-    fun getLiveData(): MutableLiveData<List<Book>> = bookListLiveData
+    fun getLiveData(): MutableLiveData<Book> = bookLiveData
 
-    private fun loadBookList() {
+    fun loadBook(id: Long) {
         viewModelScope.launch {
             kotlin.runCatching {
-                val request = repository.getBooks().execute()
+                val request = repository.findBook(id)
                 if (request.isSuccessful) {
-                    bookListLiveData.postValue(request.body())
+                    request.body()?.let {
+                        bookLiveData.postValue(it.content)
+                    }
                 }
             }.onFailure {
                 it.stackTrace
