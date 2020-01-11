@@ -40,13 +40,11 @@ class BookServiceMock: BookService {
 
             override fun execute(): Response<List<Book>> {
                 val b = mutableListOf(
-                    Book(1, "mock title", null, null),
-                    Book(2, "mock title", null, null),
-                    Book(3, "mock title", null, null)
+                    Book(1, "mock title1", Author(1, "mock author1"), null),
+                    Book(2, "mock title2", Author(1, "mock author2"), Publisher(1, "mock publisher1")),
+                    Book(3, "mock title3", null, Publisher(2, "mock publisher2"))
                 )
-                Log.d("tag", "loading")
                 Thread.sleep(2000L)
-                Log.d("tag", "loaded!!!!!")
                 return Response.success(b)
             }
         }

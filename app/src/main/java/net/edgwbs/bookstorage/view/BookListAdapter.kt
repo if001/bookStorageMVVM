@@ -40,8 +40,8 @@ class BookListAdapter(private val bookClickCall: BookClickCallback) : RecyclerVi
 
 
     fun setBookList(bookList: List<Book>) {
-        Log.d("tag", "set book list")
         if (this.bookList == null){
+            this.bookList = bookList
             notifyItemRangeInserted(0, bookList.size)
         } else {
             val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {

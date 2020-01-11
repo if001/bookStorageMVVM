@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.appbar.AppBarLayout android:layout_height="60dp"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#ffffff"
+    app:elevation="0dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout
+        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        android:layout_margin="5dp"
+        >
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="20"
+            android:background="@drawable/shape_rounded_corners_10dp"
+            >
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/search"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alwaysDrawnWithCache="false"
+                android:animateLayoutChanges="true"
+                android:hint="@android:string/search_go" />
+        </androidx.appcompat.widget.Toolbar>
+
+    </LinearLayout>
+</com.google.android.material.appbar.AppBarLayout>
