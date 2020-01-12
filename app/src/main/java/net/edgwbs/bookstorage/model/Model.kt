@@ -24,7 +24,13 @@ data class Book(
     val startAt: Date?,
     val endAt: Date?,
     val AffiliateUrl: String?
-)
+){
+    fun getInfo(): String {
+        val authorName = this.author?.name ?: "not set"
+        val publisherName = this.publisher?.name ?: "not set"
+        return "%s (%s)".format(authorName, publisherName)
+    }
+}
 
 enum class ReadState(val state: Int) {
     NotRead(1),

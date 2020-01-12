@@ -1,25 +1,21 @@
 package net.edgwbs.bookstorage.view
 
-import android.util.Log
 import android.view.LayoutInflater
-import androidx.recyclerview.widget.RecyclerView
-
-import androidx.databinding.BindingAdapter
-import android.view.View
 import android.view.ViewGroup
+
+import androidx.recyclerview.widget.RecyclerView
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
-import kotlinx.android.synthetic.main.fragment_book_card.view.*
+
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookCardBinding
 import net.edgwbs.bookstorage.model.Book
-import net.edgwbs.bookstorage.model.ReadState
 
 
 class BookListAdapter(private val bookClickCall: BookClickCallback) : RecyclerView.Adapter<BookListAdapter.BookViewHolder>() {
     class BookViewHolder(var binding: FragmentBookCardBinding) : RecyclerView.ViewHolder(binding.root)
 
-    private var bookList: List<BookShowModel>? = null
+    private var bookList: List<Book>? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder {
         val binding:FragmentBookCardBinding = DataBindingUtil.inflate(
@@ -58,7 +54,7 @@ class BookListAdapter(private val bookClickCall: BookClickCallback) : RecyclerVi
     }
 
 
-    fun setBookList(bookList: List<BookShowModel>) {
+    fun setBookList(bookList: List<Book>) {
         if (this.bookList == null){
             this.bookList = bookList
             notifyItemRangeInserted(0, bookList.size)
@@ -90,13 +86,5 @@ class BookListAdapter(private val bookClickCall: BookClickCallback) : RecyclerVi
 }
 
 interface BookClickCallback {
-    fun onClick(book: BookShowModel)
-}
-
-object CustomBindingAdapter {
-    @BindingAdapter("app:visibleGone")
-    @JvmStatic
-    fun showHide(view: View, show: Boolean) {
-        view.visibility = if (show) View.VISIBLE else View.GONE
-    }
+    fun onClick(book: Book)
 }

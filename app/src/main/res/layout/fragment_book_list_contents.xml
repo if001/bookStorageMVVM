@@ -29,8 +29,7 @@
                 android:background="#ffffff"
                 app:tabIndicatorColor="@color/colorPrimary"
                 app:tabSelectedTextColor="@color/colorPrimary"
-                app:tabTextColor="@color/colorBlack"
-                app:elevation="0dp"/>
+                app:tabTextColor="@color/colorBlack"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/book_list"
