@@ -9,21 +9,22 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
+import kotlinx.android.synthetic.main.fragment_book_card.view.*
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookCardBinding
 import net.edgwbs.bookstorage.model.Book
+import net.edgwbs.bookstorage.model.ReadState
 
 
 class BookListAdapter(private val bookClickCall: BookClickCallback) : RecyclerView.Adapter<BookListAdapter.BookViewHolder>() {
     class BookViewHolder(var binding: FragmentBookCardBinding) : RecyclerView.ViewHolder(binding.root)
 
-    private var bookList: List<Book>? = null
+    private var bookList: List<BookShowModel>? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder {
         val binding:FragmentBookCardBinding = DataBindingUtil.inflate(
             LayoutInflater.from(parent.context),
             R.layout.fragment_book_card, parent, false)
-        Log.d("tag", "create!!!!!!")
         binding.callback = bookClickCall
 
         return BookViewHolder(binding)
@@ -35,11 +36,29 @@ class BookListAdapter(private val bookClickCall: BookClickCallback) : RecyclerVi
 
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
         holder.binding.book = bookList?.get(position)
+
+//        holder.binding.book?.let {
+//            Log.d("eeeee", it.readState.toString())
+//            when(it.readState) {
+//                ReadState.NotRead.state -> {
+//                    Log.d("eeeee", "huhuuuu")
+//                    holder.itemView.book_list_icon.setText(R.string.fa_book_solid)
+//                }
+//                ReadState.Reading.state -> {
+//                    Log.d("eeeee", "huhuuuu2")
+//                    holder.itemView.book_list_icon.setText(R.string.fa_book_open_solid)
+//                }
+//                ReadState.Read.state -> {
+//                    Log.d("eeeee", "huhuuuu3")
+//                    holder.itemView.book_list_icon.setText(R.string.fa_check_solid)
+//                }
+//            }
+//        }
         holder.binding.executePendingBindings()
     }
 
 
-    fun setBookList(bookList: List<Book>) {
+    fun setBookList(bookList: List<BookShowModel>) {
         if (this.bookList == null){
             this.bookList = bookList
             notifyItemRangeInserted(0, bookList.size)
@@ -71,14 +90,13 @@ class BookListAdapter(private val bookClickCall: BookClickCallback) : RecyclerVi
 }
 
 interface BookClickCallback {
-    fun onClick(book: Book)
+    fun onClick(book: BookShowModel)
 }
 
 object CustomBindingAdapter {
     @BindingAdapter("app:visibleGone")
     @JvmStatic
     fun showHide(view: View, show: Boolean) {
-        Log.d("tag","showHide")
         view.visibility = if (show) View.VISIBLE else View.GONE
     }
 }

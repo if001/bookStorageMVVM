@@ -28,18 +28,21 @@ class BookDetailFragment : Fragment() {
     ): View? {
         val bundle = arguments
         val bookID = bundle!!.getString(FragmentConstBookID)
-        view?.findViewById<FontAwesomeTextView>(R.id.back_button)?.let {
-            it.setOnClickListener {
-                fragmentManager?.popBackStack()
-            }
-        }
-        
+
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_book_detail, container, false)
 
         binding.isLoading = true
         bookID?.toLongOrNull()?.let {
             viewModel.loadBook(it)
         }
+
+        binding.root.findViewById<FontAwesomeTextView>(R.id.back_button)?.let {
+            Log.d("aaaaaaaaaaaaaaaaaaaaaaa", "click!!!!!!!!!!!!")
+            it.setOnClickListener {
+                fragmentManager?.popBackStack()
+            }
+        }
+
         return binding.root
     }
 

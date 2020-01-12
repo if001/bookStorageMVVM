@@ -3,37 +3,63 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <variable name="book" type="net.edgwbs.bookstorage.model.Book"/>
+        <variable name="book" type="net.edgwbs.bookstorage.view.BookShowModel"/>
         <variable name="callback" type="net.edgwbs.bookstorage.view.BookClickCallback"/>
     </data>
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/root_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:layout_marginRight="5dp"
+        android:layout_marginLeft="5dp"
+        android:elevation="20dp"
         android:onClick="@{() ->  callback.onClick(book)}"
-        app:cardUseCompatPadding="true">
-
+        app:cardUseCompatPadding="true"
+        >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="15dp">
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textSize="20dp"
-                android:text="boooook"/>
+                android:layout_weight="1"
+                android:paddingRight="5dp"
+                android:paddingLeft="5dp"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:textSize="15sp"
+                    android:text="@{book.title}"/>
 
-            <TextView
-                android:id="@+id/book_name"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:text="@{book.info}"/>
+                </LinearLayout>
+            </LinearLayout>
+            <net.edgwbs.bookstorage.utils.FontAwesomeTextView
+                android:id="@+id/book_list_icon"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textSize="20dp"
-                android:text="@{book.title}"/>
+                android:layout_height="match_parent"
+                android:textColor="@color/colorPrimary"
+                android:textSize="25sp"
+                android:gravity="center_vertical"
+                android:text="@{book.stateImage}"
+                app:solid_icon="true"
+                />
         </LinearLayout>
-
     </androidx.cardview.widget.CardView>
 </layout>

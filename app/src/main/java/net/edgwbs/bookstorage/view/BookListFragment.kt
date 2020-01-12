@@ -24,6 +24,7 @@ import kotlinx.android.synthetic.main.nav_item.view.*
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
 import net.edgwbs.bookstorage.model.Book
+import net.edgwbs.bookstorage.model.ReadState
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookListViewModel
 
@@ -35,7 +36,7 @@ class BookListFragment : Fragment() {
     private lateinit var adapter: BookListAdapter
 
     private val bookClickCallback = object: BookClickCallback {
-        override fun onClick(book: Book) {
+        override fun onClick(book: BookShowModel) {
             val bundle = Bundle()
             bundle.putString(FragmentConstBookID, book.id.toString())
             val fragment = BookDetailFragment()
@@ -80,9 +81,29 @@ class BookListFragment : Fragment() {
         viewModel.getLiveData().observe(
             viewLifecycleOwner,
             Observer { books ->
-                Log.d("tag", books.toString())
                 if (books != null) {
-                    adapter.setBookList(books)
+                    val showModel = books.map{
+                        val authorName = it.author?.name ?: "not set"
+                        val publisherName = it.publisher?.name ?: "not set"
+                        val info = "%s (%s)".format(authorName, publisherName)
+
+                        val stateImage: String = when(it.readState) {
+                            ReadState.NotRead.state -> {
+                                resources.getText(R.string.fa_book_solid).toString()
+                                // R.string.fa_book_solid
+                            }
+                            ReadState.Reading.state -> {
+                                resources.getText(R.string.fa_book_open_solid).toString()
+                                // R.string.fa_book_open_solid
+                            }
+                            else -> {
+                                resources.getText(R.string.fa_check_solid).toString()
+                            }
+                        }
+
+                        BookShowModel(it.id, it.title, info, it.readState, stateImage)
+                    }
+                    adapter.setBookList(showModel)
                     binding.isLoading = false
                 }
             })
@@ -129,12 +150,17 @@ class BookListFragment : Fragment() {
 //            }
 //        })
 
-
     }
 }
 
 
-
+class BookShowModel(
+    val id: Long,
+    val title: String,
+    val info: String?,
+    val readState: Int,
+    val stateImage: String
+)
 
 class BurgerMenu(private val title: String){
     fun getTitle(): String {

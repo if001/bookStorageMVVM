@@ -1,30 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.appbar.AppBarLayout android:layout_height="60dp"
-    android:layout_width="match_parent"
+<com.google.android.material.appbar.AppBarLayout android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#ffffff"
-    app:elevation="0dp"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    android:background="@color/colorWhite"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="60dp">
     <LinearLayout
-        android:layout_height="50dp"
         android:layout_width="match_parent"
-        android:layout_margin="5dp"
-        >
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:elevation="100dp">
+
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="20"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@drawable/shape_rounded_corners_10dp"
+            android:contentInsetLeft="0dp"
+            android:contentInsetStart="0dp"
+            app:contentInsetLeft="0dp"
+            app:contentInsetStart="0dp"
+            android:contentInsetRight="0dp"
+            android:contentInsetEnd="0dp"
+            app:contentInsetRight="0dp"
+            app:contentInsetEnd="0dp"
             >
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/search"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:alwaysDrawnWithCache="false"
                 android:animateLayoutChanges="true"
-                android:hint="@android:string/search_go" />
-        </androidx.appcompat.widget.Toolbar>
+                android:hint="@android:string/search_go"
 
+                />
+        </androidx.appcompat.widget.Toolbar>
     </LinearLayout>
 </com.google.android.material.appbar.AppBarLayout>

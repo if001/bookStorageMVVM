@@ -3,6 +3,7 @@ package net.edgwbs.bookstorage.model
 import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.Response
+import retrofit2.http.Path
 
 interface BookService {
     @GET("books")
@@ -12,6 +13,6 @@ interface BookService {
         @Query("status") status: String?
     ): Response<BookResponse<PaginateBook>>
 
-    @GET("book/{id")
-    suspend fun findBook(id: Long): Response<BookResponse<Book>>
+    @GET("book/{id}")
+    suspend fun findBook(@Path("id") id: Long): Response<BookResponse<Book>>
 }
