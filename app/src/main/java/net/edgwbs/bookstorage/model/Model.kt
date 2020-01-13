@@ -13,7 +13,7 @@ data class PaginateBook (
 
 data class Book(
     val id: Long,
-    val accountID: String,
+    val accountId: String,
     val title: String,
     val author: Author?,
     val publisher: Publisher?,
@@ -46,5 +46,33 @@ data class Author(
 data class Publisher(
     val id: Long,
     val name: String = "not set"
+)
+
+
+// for rakuten model
+data class SearchResult (
+    val Items: List<Contents>,
+    val page: Int,
+    val pageCount: Int
+)
+
+data class Contents (
+    val Item: BookResult,
+    val page: Int,
+    val perPage: Int
+)
+
+data class BookResult (
+    val title: String,
+    val isbn: String?,
+    val author: String?,
+    val publisherName: String?,
+    val smallImageUrl: String?,
+    val mediumImageUrl: String?,
+    val itemPrice: Int?,
+    val itemUrl: String?,
+    val affiliateUrl: String?,
+    val itemCaption: String?,
+    var isChecked: Boolean = false
 )
 
