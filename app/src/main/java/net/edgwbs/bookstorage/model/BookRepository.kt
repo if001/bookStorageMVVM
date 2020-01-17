@@ -26,7 +26,7 @@ class BookRepository{
             .build()
     }
 
-    suspend fun getBooks(page: Int, perPage: Int, status: String?): Response<BookResponse<PaginateBook>> = bookService.getBooks(page, perPage, status)
+    suspend fun getBooks(page: Int, perPage:Int, status: String?): Response<BookResponse<PaginateBook>> = bookService.getBooks(page, perPage, status)
     suspend fun findBook(id: Long): Response<BookResponse<Book>> = bookService.findBook(id)
 
     companion object Factory {

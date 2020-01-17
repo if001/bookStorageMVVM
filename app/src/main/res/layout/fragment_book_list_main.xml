@@ -6,6 +6,7 @@
 
     <data>
         <variable name="isLoading" type="boolean" />
+        <variable name="isMoreLoading" type="boolean" />
     </data>
 
     <androidx.drawerlayout.widget.DrawerLayout
@@ -21,6 +22,7 @@
             <include
                 layout="@layout/fragment_book_list_contents"
                 app:isLoading="@{isLoading}"
+                app:isMoreLoading="@{isMoreLoading}"
                 />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -30,7 +32,7 @@
                 android:layout_gravity="bottom|end"
                 android:layout_marginEnd="16dp"
                 android:layout_marginRight="16dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="60dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:srcCompat="@android:drawable/ic_dialog_email"

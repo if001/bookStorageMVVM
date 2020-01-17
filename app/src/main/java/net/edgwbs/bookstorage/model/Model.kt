@@ -30,6 +30,15 @@ data class Book(
         val publisherName = this.publisher?.name ?: "not set"
         return "%s (%s)".format(authorName, publisherName)
     }
+
+    companion object {
+        fun forMoreLoad(): Book {
+            return Book(-1, "", "", null, null, null,null,null,0,null,null,null)
+        }
+        fun forEmpty(): Book {
+            return Book(-2, "", "", null, null, null,null,null,0,null,null,null)
+        }
+    }
 }
 
 enum class ReadState(val state: Int) {

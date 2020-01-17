@@ -1,29 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.appbar.AppBarLayout android:layout_width="match_parent"
+
+<!--<androidx.appcompat.widget.Toolbar-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    android:background="@drawable/shape_rounded_corners_10dp"-->
+<!--    android:id="@+id/toolbar"-->
+<!--    android:layout_margin="10dp"-->
+<!--    android:elevation="60dp"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:contentInsetLeft="0dp"-->
+<!--    android:contentInsetStart="0dp"-->
+<!--    android:contentInsetRight="0dp"-->
+<!--    android:contentInsetEnd="0dp"-->
+<!--    app:contentInsetLeft="0dp"-->
+<!--    app:contentInsetStart="0dp"-->
+<!--    app:contentInsetRight="0dp"-->
+<!--    app:contentInsetEnd="0dp"-->
+<!--    app:layout_scrollFlags="scroll|enterAlways">-->
+
+<!--    <androidx.appcompat.widget.SearchView-->
+<!--        android:id="@+id/search"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:alwaysDrawnWithCache="false"-->
+<!--        android:animateLayoutChanges="true"-->
+<!--        android:hint="@android:string/search_go"-->
+<!--        />-->
+<!--</androidx.appcompat.widget.Toolbar>-->
+
+
+<com.google.android.material.appbar.AppBarLayout
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/colorWhite"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="60dp">
-    <LinearLayout
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:background="@android:color/transparent"
+    app:elevation="0dp"
+    >
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:elevation="100dp">
-
+        android:layout_margin="20dp"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="20dp"
+        app:layout_scrollFlags="scroll|enterAlways"
+        >
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/shape_rounded_corners_10dp"
+            android:layout_height="match_parent"
             android:contentInsetLeft="0dp"
             android:contentInsetStart="0dp"
-            app:contentInsetLeft="0dp"
-            app:contentInsetStart="0dp"
             android:contentInsetRight="0dp"
             android:contentInsetEnd="0dp"
+            app:contentInsetLeft="0dp"
+            app:contentInsetStart="0dp"
             app:contentInsetRight="0dp"
-            app:contentInsetEnd="0dp"
-            >
+            app:contentInsetEnd="0dp">
+
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/search"
                 android:layout_width="match_parent"
@@ -31,8 +66,7 @@
                 android:alwaysDrawnWithCache="false"
                 android:animateLayoutChanges="true"
                 android:hint="@android:string/search_go"
-
                 />
         </androidx.appcompat.widget.Toolbar>
-    </LinearLayout>
+    </androidx.cardview.widget.CardView>
 </com.google.android.material.appbar.AppBarLayout>

@@ -5,60 +5,45 @@
 
     <data>
         <variable name="isLoading" type="boolean" />
-        <variable name="addLoading" type="boolean" />
+        <variable name="isMoreLoading" type="boolean" />
     </data>
-
-    <LinearLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/cardview_light_background"
-        android:orientation="vertical"
-        tools:ignore="PrivateResource">
+        android:layout_height="match_parent">
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/cardview_light_background"
-            android:orientation="vertical">
-
-            <include layout="@layout/app_bar_with_search"/>
-
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tab_layout"
+            android:layout_height="match_parent">
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#ffffff"
-                app:tabIndicatorColor="@color/colorPrimary"
-                app:tabSelectedTextColor="@color/colorPrimary"
-                app:tabTextColor="@color/colorBlack"/>
+                android:layout_marginTop="80dp"
+                app:visibleGone="@{isLoading}">
+                <include layout="@layout/progress_loading"/>
+            </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/book_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/colorGray1"
+                android:background="@color/colorWhite"
                 android:paddingTop="5dp"
+                android:layout_marginBottom="60dp"
                 app:layoutManager="LinearLayoutManager"
                 app:visibleGone="@{!isLoading}"
                 />
 
-            <LinearLayout
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tab_layout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:visibleGone="@{addLoading}">
-                <include layout="@layout/progress_loading"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:visibleGone="@{isLoading}">
-                <include layout="@layout/progress_loading"/>
-            </LinearLayout>
-
-        </LinearLayout>
-
-
-    </LinearLayout>
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:background="#ffffff"
+                app:tabIndicatorColor="@color/colorPrimary"
+                app:tabSelectedTextColor="@color/colorPrimary"
+                app:tabTextColor="@color/colorBlack" />
+        </RelativeLayout>
+        <include layout="@layout/app_bar_with_search"/>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
 

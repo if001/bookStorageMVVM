@@ -58,6 +58,14 @@ class BookListFragment : Fragment() {
             }
         }
     }
+    private val moreLoadButtonClickCallback = object: MoreLoadButtonCallback {
+        override fun onClick() {
+            binding.isMoreLoading = true
+            viewModel.nextLoadBookList(state) {
+                binding.isMoreLoading = false
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -66,28 +74,34 @@ class BookListFragment : Fragment() {
     ): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_book_list_main, container, false)
 
-        adapter = BookListAdapter(bookClickCallback)
+        adapter = BookListAdapter(bookClickCallback, moreLoadButtonClickCallback)
+
         val rv = binding.root.findViewById<RecyclerView>(R.id.book_list)
         rv.adapter = adapter
+
 
         binding.isLoading = true
         initTab(binding.root)
         initFab(binding.root)
-        setRVScrollListener(rv)
+        // setRVScrollListener(rv)
 
         return binding.root
     }
 
-    private fun setRVScrollListener(rv: RecyclerView) {
-        val scrollListener = RecyclerViewLoadMoreScroll(rv.layoutManager as LinearLayoutManager)
-        scrollListener.setOnLoadMoreListener(object : OnLoadMoreListener {
-            override fun onLoadMore() {
-                // page += 1
-                // viewModel.loadBookList(page, state)
-            }
-        })
-        rv.addOnScrollListener(scrollListener)
-    }
+//    private fun setRVScrollListener(rv: RecyclerView) {
+//        val scrollListener = RecyclerViewLoadMoreScroll(rv.layoutManager as LinearLayoutManager)
+//        scrollListener.setOnLoadMoreListener(object : OnLoadMoreListener {
+//            override fun onLoadMore() {
+//                scrollListener.setLoading()
+//                binding.isMoreLoading = true
+//                viewModel.nextLoadBookList(state) {
+//                    scrollListener.setLoaded()
+//                    binding.isMoreLoading = false
+//                }
+//            }
+//        })
+//        rv.addOnScrollListener(scrollListener)
+//    }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -144,7 +158,8 @@ class BookListFragment : Fragment() {
                     "読了" -> "read"
                     else -> null
                 }
-                viewModel.loadBookList(page, state)
+                viewModel.clearCachedBook()
+                viewModel.loadBookList(page, state) {}
             }
         })
     }

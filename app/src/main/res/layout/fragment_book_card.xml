@@ -7,17 +7,13 @@
         <variable name="callback" type="net.edgwbs.bookstorage.view.BookClickCallback"/>
     </data>
 
-    <androidx.cardview.widget.CardView
+    <LinearLayout
         android:id="@+id/root_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginRight="5dp"
-        android:layout_marginLeft="5dp"
-        android:elevation="20dp"
-        android:onClick="@{() ->  callback.onClick(book)}"
-        app:cardUseCompatPadding="true"
-        >
+        android:orientation="vertical"
+        android:layout_margin="0dp"
+        android:onClick="@{() ->  callback.onClick(book)}">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -61,5 +57,6 @@
                 app:solid_icon="true"
                 />
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
+        <include layout="@layout/vidider" />
+    </LinearLayout>
 </layout>
