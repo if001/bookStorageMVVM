@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.BaseAdapter
 import android.widget.ListView
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -53,6 +54,7 @@ class BookListFragment : Fragment() {
 
             val transaction = fragmentManager?.beginTransaction()
             transaction?.let {
+                it.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
                 it.addToBackStack(null)
                 it.replace(R.id.fragment_container, fragment).commit()
             }
@@ -81,8 +83,10 @@ class BookListFragment : Fragment() {
 
 
         binding.isLoading = true
-        initTab(binding.root)
-        initFab(binding.root)
+
+        val context = binding.root.context
+        initTab(binding.boolListContent.tabLayout, context)
+        initFab(binding.bookRegisterFab, context)
         // setRVScrollListener(rv)
 
         return binding.root
@@ -140,9 +144,7 @@ class BookListFragment : Fragment() {
         navView.adapter = MenuItemAdapter(view.context, burgerItems)
     }
 
-    private fun initTab(view: View) {
-        val tabLayout = view.findViewById<TabLayout>(R.id.tab_layout)
-
+    private fun initTab(tabLayout: TabLayout, context: Context) {
         tabLayout.addTab(tabLayout.newTab().setText("ALL"))
         tabLayout.addTab(tabLayout.newTab().setText("未読"))
         tabLayout.addTab(tabLayout.newTab().setText("読中"))
@@ -165,16 +167,17 @@ class BookListFragment : Fragment() {
     }
 
 
-    private fun initFab(view: View) {
-        val fab = view.findViewById<FloatingActionButton>(R.id.book_register_fab)
-        val drawable = FontDrawable(view.context, R.string.fa_plus_solid, true, true)
-        drawable.setTextColor(ContextCompat.getColor(view.context, android.R.color.white))
+    private fun initFab(fab: FloatingActionButton, context: Context) {
+        val drawable = FontDrawable(context, R.string.fa_plus_solid, true, true)
+        drawable.setTextColor(ContextCompat.getColor(context, android.R.color.white))
         fab.setImageDrawable(drawable)
 
         fab.setOnClickListener{
             val fragment = BookRegisterFragment()
             val transaction = fragmentManager?.beginTransaction()
             transaction?.let {
+                // it.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+                it.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
                 it.addToBackStack(null)
                 it.replace(R.id.fragment_container, fragment).commit()
             }

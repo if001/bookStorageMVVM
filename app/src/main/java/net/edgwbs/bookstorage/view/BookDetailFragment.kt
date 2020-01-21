@@ -1,13 +1,17 @@
 package net.edgwbs.bookstorage.view
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.android.synthetic.main.fragment_book_register.view.*
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookDetailBinding
 import net.edgwbs.bookstorage.utils.FontAwesomeTextView
@@ -35,18 +39,17 @@ class BookDetailFragment : Fragment() {
             viewModel.loadBook(it)
         }
 
-        binding.root.findViewById<FontAwesomeTextView>(R.id.back_button)?.let {
+        binding.backButton.setOnClickListener {
             it.setOnClickListener {
                 fragmentManager?.popBackStack()
             }
         }
-
         return binding.root
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        observeViewModel(viewModel)
+        // observeViewModel(viewModel)
     }
 
     private fun observeViewModel(viewModel: BookViewModel) {

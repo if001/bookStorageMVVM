@@ -22,7 +22,7 @@ class RakutenRepository{
         val gson = GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create() // NamingPoricyを指定する
 
         return Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(baseURL)
             .build()
     }
@@ -30,7 +30,7 @@ class RakutenRepository{
     suspend fun getBooks(page: Int,
                          title: String?,
                          author: String?): Response<SearchResult> {
-        return rakutenService.getBook(applicationID, affiliateID, title, author, page, hits)
+        return rakutenService.getBooks(applicationID, affiliateID, title, author, page, hits)
     }
 
     companion object Factory {

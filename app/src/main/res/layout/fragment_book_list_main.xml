@@ -20,6 +20,7 @@
             android:layout_height="match_parent">
 
             <include
+                android:id="@+id/bool_list_content"
                 layout="@layout/fragment_book_list_contents"
                 app:isLoading="@{isLoading}"
                 app:isMoreLoading="@{isMoreLoading}"

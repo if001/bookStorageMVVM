@@ -57,18 +57,58 @@ data class Publisher(
     val name: String = "not set"
 )
 
+data class CountedAuthor(
+    val id: Long,
+    val name: String,
+    val count: Long
+)
+
+data class CountedPublisher(
+    val id: Long,
+    val name: String,
+    val count: Long
+)
+
+// form
+data class BookForm (
+    val title: String,
+    val isbn: String?,
+    val authorId: Long?,
+    val publisherId: Long?,
+    val smallImageUrl: String?,
+    val MediumImageUrl: String?,
+    val itemUrl: String?,
+    val affiliateUrl: String?
+)
+
+data class AuthorForm (
+    val authorName: String
+)
+
+data class PublisherForm (
+    val publisherName: String
+)
+
+data class BookFormWith (
+    val title: String,
+    val isbn: String?,
+    val authorName: String?,
+    val publisherName: String?,
+    val smallImageUrl: String?,
+    val MediumImageUrl: String?,
+    val itemUrl: String?,
+    val affiliateUrl: String?
+)
 
 // for rakuten model
 data class SearchResult (
-    val Items: List<Contents>,
+    val Items: List<Item>,
     val page: Int,
     val pageCount: Int
 )
 
-data class Contents (
-    val Item: BookResult,
-    val page: Int,
-    val perPage: Int
+data class Item (
+    val Item: BookResult
 )
 
 data class BookResult (
@@ -83,5 +123,11 @@ data class BookResult (
     val affiliateUrl: String?,
     val itemCaption: String?,
     var isChecked: Boolean = false
-)
+) {
+    fun getInfo(): String {
+        val authorName = this.author ?: "not set"
+        val publisherName = this.publisherName ?: "not set"
+        return "%s (%s)".format(authorName, publisherName)
+    }
+}
 

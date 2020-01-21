@@ -1,9 +1,11 @@
 package net.edgwbs.bookstorage.model
 
+import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface RakutenService {
-    suspend fun getBook(
+    @GET("BooksBook/Search/20170404")
+    suspend fun getBooks(
         @Query("applicationId") applicationID: String,
         @Query("affiliateId") affiliateID: String,
         @Query("title") title: String?,

@@ -1,0 +1,120 @@
+package net.edgwbs.bookstorage.viewModel
+
+import android.app.Application
+import android.util.AndroidRuntimeException
+import android.util.Log
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
+import net.edgwbs.bookstorage.model.*
+import okhttp3.internal.toImmutableList
+import java.lang.Appendable
+
+class SearchResultBookListViewModel(application: Application): AndroidViewModel(application) {
+    private val rakutenRepository: RakutenRepository = RakutenRepository.instance
+    private val bookRepository: BookRepository = BookRepository.instance
+    private var searchResultsLiveData: MutableLiveData<List<BookResult>> = MutableLiveData()
+    private var cachedResultList: MutableList<BookResult> = mutableListOf()
+
+    private val perPage: Int = 20
+    var page: Int = 1
+    var totalCount: Int = 0
+
+    init {
+        clearCachedBook()
+    }
+
+    fun clearCachedBook() {
+        cachedResultList = mutableListOf()
+    }
+
+    fun getLiveData(): MutableLiveData<List<BookResult>> = searchResultsLiveData
+
+    fun nextLoadBookList(title: String?, author: String?, requestCallback: RequestCallback) {
+        if (perPage * page < totalCount) {
+            page += 1
+            loadBookList(page, title, author, requestCallback)
+        }
+    }
+
+    fun loadBookList(page: Int, title: String?,author: String?, requestCallback: RequestCallback) {
+        viewModelScope.launch {
+            val result = kotlin.runCatching{
+                val response = rakutenRepository.getBooks(page, title, author)
+                if (response.isSuccessful){
+                    response.body()?.Items?.map{ x ->
+                        cachedResultList.add(x.Item)
+                    }
+                    searchResultsLiveData.postValue(cachedResultList)
+                }
+            }
+            result
+                .onFailure {
+                    Log.d("eeeeeeee", it.toString())
+                    it.stackTrace
+                    requestCallback.onFail()
+                }.also {
+                    Thread.sleep(4000)
+                    // requestEndCallback()
+                    requestCallback.onFinal()
+                }
+        }
+    }
+
+    fun registerBooks(books: MutableList<BookResult?>, requestCallback: RequestCallback) {
+        Log.d("eeee", books.toString())
+
+
+        viewModelScope.launch {
+            val result = kotlin.runCatching {
+                val creates = books.mapNotNull{
+                    it?.let { bookResult ->
+                        val form = BookFormWith(
+                            bookResult.title,
+                            bookResult.isbn,
+                            bookResult.author,
+                            bookResult.publisherName,
+                            bookResult.smallImageUrl,
+                            bookResult.mediumImageUrl,
+                            bookResult.itemUrl,
+                            bookResult.affiliateUrl
+                        )
+                        Log.d("eeeeeeee3333", form.toString())
+                        async { bookRepository.createBookWith(form) }
+                    }
+                }
+                val errors = creates.awaitAll().mapNotNull{
+                    it.errorBody()
+                }
+                if (errors.isEmpty()) {
+                    listOf()
+                } else {
+                    errors
+                }
+            }
+            result
+                .onFailure {
+                    Log.d("eeeeeeee", it.toString())
+                    it.stackTrace
+                    requestCallback.onFail()
+                }
+                .onSuccess {
+                    if(it.isEmpty()){
+                        requestCallback.onRequestSuccess()
+                    } else {
+                        requestCallback.onRequestFail()
+                    }
+                }
+                .also {
+                    Thread.sleep(4000)
+                    // requestEndCallback()
+                    // afterRequest.onFinal()
+                    requestCallback.onFinal()
+                }
+        }
+    }
+}

@@ -41,7 +41,7 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
+        android:layout_margin="10dp"
         app:cardCornerRadius="14dp"
         app:cardElevation="20dp"
         app:layout_scrollFlags="scroll|enterAlways"
@@ -49,7 +49,7 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:contentInsetLeft="0dp"
             android:contentInsetStart="0dp"
             android:contentInsetRight="0dp"
@@ -65,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:alwaysDrawnWithCache="false"
                 android:animateLayoutChanges="true"
-                android:hint="@android:string/search_go"
+                android:hint="Search"
                 />
         </androidx.appcompat.widget.Toolbar>
     </androidx.cardview.widget.CardView>
