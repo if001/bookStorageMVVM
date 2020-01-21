@@ -49,7 +49,7 @@ class BookDetailFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        // observeViewModel(viewModel)
+        observeViewModel(viewModel)
     }
 
     private fun observeViewModel(viewModel: BookViewModel) {

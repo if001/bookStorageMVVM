@@ -123,8 +123,10 @@ class BookRegisterFragment : Fragment() {
         binding.searchOpenButton.setOnClickListener{
             if (binding.hideSearchBox){
                 openSearchBox()
+                closeInputBox()
             } else {
                 closeSearchBox()
+                closeInputBox()
             }
         }
 
@@ -139,7 +141,7 @@ class BookRegisterFragment : Fragment() {
     }
 
     private fun closeSearchBox() {
-        val animation = AnimationUtils.loadAnimation(context, R.anim.fade_in_to_top)
+        val animation = AnimationUtils.loadAnimation(context, R.anim.fade_out_to_top)
         binding.searchBox?.let {
             it.startAnimation(animation)
             val scope = CoroutineScope(Dispatchers.Default)
@@ -151,7 +153,7 @@ class BookRegisterFragment : Fragment() {
     }
 
     private fun openSearchBox() {
-        val animation = AnimationUtils.loadAnimation(context, R.anim.fade_out_to_top)
+        val animation = AnimationUtils.loadAnimation(context, R.anim.fade_in_to_top)
         binding.searchBox?.let {
             it.startAnimation(animation)
             val scope = CoroutineScope(Dispatchers.Default)
