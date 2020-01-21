@@ -37,7 +37,10 @@ class BookRegisterFragment : Fragment() {
         override fun onRequestSuccess() {}
         override fun onRequestFail() {}
         override fun onFail() {}
-        override fun onFinal() {}
+        override fun onFinal() {
+            closeSearchBox()
+            binding.isLoading = false
+        }
     }
     private val registerRequestCallback: RequestCallback = object : RequestCallback {
         override fun onRequestSuccess() {
@@ -102,14 +105,6 @@ class BookRegisterFragment : Fragment() {
         }
 
         binding.ableRegister = false
-        val drawable = FontDrawable(context, R.string.fa_plus_solid, true, true)
-        context?.let {
-            drawable.setTextColor(ContextCompat.getColor(it, android.R.color.white))
-        }
-        binding.addRegisterSubmit.setImageDrawable(drawable)
-        binding.addRegisterSubmit.setOnClickListener {
-            viewModel.registerBooks(adapter.getCheckedList(), registerRequestCallback)
-        }
         return binding.root
     }
 
@@ -118,10 +113,11 @@ class BookRegisterFragment : Fragment() {
         observeViewModel(viewModel)
 
         binding.searchButton.setOnClickListener{
-            closeSearchBox()
-            binding.isLoading = true
-            viewModel.loadBookList(1, binding.title, binding.author, loadRequestCallback)
-            closeInputBox()
+            if (binding.title !=null || binding.author != null) {
+                binding.isLoading = true
+                viewModel.loadBookList(1, binding.title, binding.author, loadRequestCallback)
+                closeInputBox()
+            }
         }
 
         binding.searchOpenButton.setOnClickListener{
@@ -130,6 +126,15 @@ class BookRegisterFragment : Fragment() {
             } else {
                 closeSearchBox()
             }
+        }
+
+        val drawable = FontDrawable(context, R.string.fa_plus_solid, true, true)
+        context?.let {
+            drawable.setTextColor(ContextCompat.getColor(it, android.R.color.white))
+        }
+        binding.addRegisterSubmit.setImageDrawable(drawable)
+        binding.addRegisterSubmit.setOnClickListener {
+            viewModel.registerBooks(adapter.getCheckedList(), registerRequestCallback)
         }
     }
 
@@ -140,7 +145,7 @@ class BookRegisterFragment : Fragment() {
             val scope = CoroutineScope(Dispatchers.Default)
             scope.launch {
                 delay(100)
-                binding.hideSearchBox = !binding.hideSearchBox
+                binding.hideSearchBox = true
             }
         }
     }
@@ -152,7 +157,7 @@ class BookRegisterFragment : Fragment() {
             val scope = CoroutineScope(Dispatchers.Default)
             scope.launch {
                 delay(250)
-                binding.hideSearchBox = !binding.hideSearchBox
+                binding.hideSearchBox = false
             }
         }
     }
