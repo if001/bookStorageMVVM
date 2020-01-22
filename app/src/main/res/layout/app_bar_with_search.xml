@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         app:cardCornerRadius="14dp"
-        app:cardElevation="15dp"
+        app:cardElevation="5dp"
         app:layout_scrollFlags="scroll|enterAlways"
         >
         <androidx.appcompat.widget.Toolbar
@@ -57,12 +57,14 @@
             app:contentInsetLeft="0dp"
             app:contentInsetStart="0dp"
             app:contentInsetRight="0dp"
-            app:contentInsetEnd="0dp">
+            app:contentInsetEnd="0dp"
+            >
 
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/search"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="end"
                 android:alwaysDrawnWithCache="false"
                 android:animateLayoutChanges="true"
                 android:hint="Search"
