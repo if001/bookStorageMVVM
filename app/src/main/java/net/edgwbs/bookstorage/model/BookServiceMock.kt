@@ -48,24 +48,6 @@ import kotlinx.coroutines.*
          perPage: Int,
          status: String?
      ): Response<BookResponse<PaginateBook>> {
-         val b = mutableListOf(
-             Book(1, "1","mock title1", Author(1, "mock author1"), null, null,null,null,1,null,null,null),
-             Book(2, "2","mock title2", Author(1, "mock author1"), null, null,null,null,1,null,null,null),
-             Book(3, "3","mock title3", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(4, "3","mock title4", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(5, "3","mock title5", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(6, "3","mock title6", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(7, "3","mock title7", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(8, "3","mock title8", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(9, "3","mock title9", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(10, "3","mock title10", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(11, "3","mock title11", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(12, "3","mock title12", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(11, "3","mock title13", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(11, "3","mock title14", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(11, "3","mock title15", Author(2, "mock author2"), null, null,null,null,1,null,null,null),
-             Book(11, "3","mock title16", Author(2, "mock author2"), null, null,null,null,1,null,null,null)
-             )
-         return Response.success(BookResponse(PaginateBook(b, 3)))
+         return Response.success(BookResponse(PaginateBook.mockBooks(page, perPage)))
      }
 }

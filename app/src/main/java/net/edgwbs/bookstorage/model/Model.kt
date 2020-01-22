@@ -1,5 +1,6 @@
 package net.edgwbs.bookstorage.model
 
+import android.util.Log
 import java.util.*
 
 data class BookResponse<T> (
@@ -9,7 +10,25 @@ data class BookResponse<T> (
 data class PaginateBook (
     val books: List<Book>,
     val totalCount: Int
-)
+){
+    companion object {
+        private const val totalCount = 5
+        private val t = (0..totalCount).map{ Book.createMock(it.toLong(), "mock title$it") }
+        fun mockBooks(page:Int, perPage:Int): PaginateBook {
+            var start = (page-1)*perPage
+            var end = page*perPage
+            if (page*perPage > totalCount) {
+                start = 0
+                end = 0
+            }
+            if (perPage > totalCount) {
+                end = totalCount
+            }
+
+            return PaginateBook(t.subList(start, end), totalCount)
+        }
+    }
+}
 
 data class Book(
     val id: Long,
@@ -37,6 +56,10 @@ data class Book(
         }
         fun forEmpty(): Book {
             return Book(-2, "", "", null, null, null,null,null,0,null,null,null)
+        }
+
+        fun createMock(id: Long, title: String): Book {
+            return Book(id, "", title, null, null, null,null,null,0,null,null,null)
         }
     }
 }

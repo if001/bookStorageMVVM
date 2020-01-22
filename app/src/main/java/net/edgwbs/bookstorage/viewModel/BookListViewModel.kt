@@ -4,12 +4,18 @@ import android.app.Application
 import android.app.SharedElementCallback
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.paging.LivePagedListBuilder
+import androidx.paging.PageKeyedDataSource
+import androidx.paging.PagedList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.edgwbs.bookstorage.model.Book
+import net.edgwbs.bookstorage.model.BookDataSourceFactory
 import net.edgwbs.bookstorage.model.BookRepository
+import net.edgwbs.bookstorage.model.NetworkState
 import kotlin.concurrent.thread
 
 class BookListViewModel(application: Application): AndroidViewModel(application) {
@@ -17,28 +23,39 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
     private var bookListLiveData: MutableLiveData<List<Book>> = MutableLiveData()
     private var cachedBookList: MutableList<Book> = mutableListOf()
 
-    private val perPage: Int = 20
+
+    private val perPage: Int = 10
 
     var page: Int = 1
     var totalCount: Int = 0
 
+
+    private val bookPagedList: LiveData<PagedList<Book>>
+    private var bookLiveDataSource: MutableLiveData<PageKeyedDataSource<Int, Book>>? = null
+
+    val networkState: LiveData<NetworkState>
     init {
-        clearCachedBook()
-        //loadBookList(1, null)
+        val pagedListConfig = PagedList.Config.Builder()
+            .setPageSize(perPage)
+            .setInitialLoadSizeHint(perPage)
+            .build()
+        val bookDataSourceFactory = BookDataSourceFactory(viewModelScope, perPage)
+
+        bookLiveDataSource = bookDataSourceFactory.bookLiveDataSource
+
+        networkState = bookDataSourceFactory.source.getNetworkState()
+
+        bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig).build()
     }
+    fun getLiveData2(): LiveData<PagedList<Book>> = bookPagedList
+
+
+
 
     fun clearCachedBook() {
         cachedBookList = mutableListOf()
     }
 
-    fun getLiveData(): MutableLiveData<List<Book>> = bookListLiveData
-
-    fun nextLoadBookList(state: String?, requestCallback: RequestCallback) {
-        if (perPage * page < totalCount) {
-            page += 1
-            loadBookList(page, state, requestCallback)
-        }
-    }
 
     fun loadBookList(page: Int, state: String?, requestCallback: RequestCallback): Job {
         return viewModelScope.launch {

@@ -18,8 +18,10 @@ import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.paging.PagedList
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -89,13 +91,6 @@ class BookListFragment : Fragment() {
             binding.isLoading = false
         }
     }
-    private val moreLoadButtonClickCallback = object: MoreLoadButtonCallback {
-        override fun onClick() {
-            binding.isMoreLoading = true
-            viewModel.nextLoadBookList(state, loadBookListCallback)
-            // binding.isMoreLoading = false
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -104,22 +99,22 @@ class BookListFragment : Fragment() {
     ): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_book_list_main, container, false)
 
-        adapter = BookListAdapter(bookClickCallback, moreLoadButtonClickCallback)
-
-        val rv = binding.root.findViewById<RecyclerView>(R.id.book_list)
-        rv.adapter = adapter
-
-
         binding.isLoading = true
 
         val context = binding.root.context
         initTab(binding.bookListContent.tabLayout, context)
         initFab(binding.bookRegisterFab, context)
 
+        adapter = BookListAdapter(bookClickCallback)
+        val rv = binding.root.findViewById<RecyclerView>(R.id.book_list)
+        rv.setHasFixedSize(true)
+
 
         observeViewModel(viewModel)
-        viewModel.clearCachedBook()
-        loadBookJob = viewModel.loadBookList(page, state, loadBookListCallback)
+        // viewModel.clearCachedBook()
+        // loadBookJob = viewModel.loadBookList(page, state, loadBookListCallback)
+
+        rv.adapter = adapter
         return binding.root
     }
 
@@ -132,15 +127,32 @@ class BookListFragment : Fragment() {
 
     private fun observeViewModel(viewModel: BookListViewModel) {
         //データをSTARTED かRESUMED状態である場合にのみ、アップデートするように、LifecycleOwnerを紐付け、ライフサイクル内にオブザーバを追加
-        viewModel.getLiveData().observe(
+//        viewModel.getLiveData().observe(
+//            viewLifecycleOwner,
+//            Observer { books ->
+//                if (books != null) {
+//                    Log.d("debug", "observe start")
+//                    adapter.setBookList(books)
+//                    binding.isLoading = false
+//                }
+//            })
+        viewModel.getLiveData2().removeObservers(viewLifecycleOwner)
+        viewModel.getLiveData2().observe(
             viewLifecycleOwner,
             Observer { books ->
                 if (books != null) {
-                    Log.d("debug", "observe start")
-                    adapter.setBookList(books)
+                    Log.d("debug", "observe!!!")
+                    adapter.submitList(books)
                     binding.isLoading = false
                 }
             })
+
+        viewModel.networkState.observe(
+            viewLifecycleOwner,
+            Observer { n ->
+                Log.d("debug", "--------------"+n.name)
+            }
+        )
     }
 
     private fun initMenu(activity: FragmentActivity, view: View) {

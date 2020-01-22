@@ -11,8 +11,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 class BookRepository{
     private val baseURL = "http://10.0.2.2:8081"
 
-    private val bookService: BookService = client().create(BookService::class.java)
-    // private val bookService: BookService = BookServiceMock()
+    // private val bookService: BookService = client().create(BookService::class.java)
+    private val bookService: BookService = BookServiceMock()
 
     private fun client(): Retrofit {
         // val httpLogging = HttpLoggingInterceptor()
