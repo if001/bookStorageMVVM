@@ -59,16 +59,14 @@ class BookRegisterFragment : Fragment() {
         }
         override fun onFail() {
             Snackbar.make(binding.root , "fail", Snackbar.LENGTH_LONG).show()
-//            binding.isError = true
-//            binding.errorMessage = "登録に失敗しました。"
-//            val scope = CoroutineScope(Dispatchers.Default)
-//            scope.launch {
-//                delay(3000L)
-//                binding.isError = false
-//            }
         }
         override fun onFinal() {
             Thread.sleep(4000)
+
+            binding.addRegisterSubmit.isClickable = true
+            binding.addRegisterSubmit.clearAnimation()
+            val drawable = FontDrawable(context, R.string.fa_plus_solid, true, true)
+            binding.addRegisterSubmit.setImageDrawable(drawable)
         }
     }
 
@@ -143,6 +141,12 @@ class BookRegisterFragment : Fragment() {
         }
         binding.addRegisterSubmit.setImageDrawable(drawable)
         binding.addRegisterSubmit.setOnClickListener {
+            val loadingDrawable = FontDrawable(context, R.string.fa_spinner_solid, true, true)
+            binding.addRegisterSubmit.setImageDrawable(loadingDrawable)
+            val rotate = AnimationUtils.loadAnimation(context, R.anim.rotate)
+            binding.addRegisterSubmit.startAnimation(rotate)
+            binding.addRegisterSubmit.isClickable = false
+
             viewModel.registerBooks(adapter.getCheckedList(), registerRequestCallback)
         }
     }
