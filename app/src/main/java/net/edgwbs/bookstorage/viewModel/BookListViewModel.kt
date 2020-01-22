@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.edgwbs.bookstorage.model.Book
 import net.edgwbs.bookstorage.model.BookRepository
@@ -39,8 +40,8 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
         }
     }
 
-    fun loadBookList(page: Int, state: String?, requestCallback: RequestCallback){
-        viewModelScope.launch {
+    fun loadBookList(page: Int, state: String?, requestCallback: RequestCallback): Job {
+        return viewModelScope.launch {
             kotlin.runCatching {
                 val request = repository.getBooks(page, perPage, state)
                 Log.d("uuuuuuuuuuu", request.toString())

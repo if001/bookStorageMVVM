@@ -10,6 +10,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
 import com.google.android.material.bottomnavigation.BottomNavigationItemView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookCardBinding
@@ -18,6 +22,7 @@ import net.edgwbs.bookstorage.model.Book
 import net.edgwbs.bookstorage.utils.VIEW_TYPE_EMPTY_ITEM
 import net.edgwbs.bookstorage.utils.VIEW_TYPE_ITEM
 import net.edgwbs.bookstorage.utils.VIEW_TYPE_LOADING
+import kotlin.coroutines.CoroutineContext
 
 
 class BookListAdapter(
@@ -83,18 +88,28 @@ class BookListAdapter(
                     return bookList.size
                 }
 
-                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                override fun areItemsTheSame(
+                    oldItemPosition: Int,
+                    newItemPosition: Int
+                    ): Boolean {
                     val oldList = this@BookListAdapter.bookList
                     return oldList?.get(oldItemPosition)?.id == bookList[newItemPosition].id
                 }
 
-                override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    val new = bookList[newItemPosition]
-                    val old = bookList[oldItemPosition]
-                    return new.id == old.id
+                override fun areContentsTheSame(
+                    oldItemPosition: Int,
+                    newItemPosition: Int
+                ): Boolean {
+                    return if (bookList.size <= newItemPosition || bookList.size <= oldItemPosition) {
+                        // todo this "if statement" may be unnecessary
+                        true
+                    } else {
+                        val new = bookList[newItemPosition]
+                        val old = bookList[oldItemPosition]
+                        new.id == old.id
+                    }
                 }
             })
-
             val tmp = bookList.toMutableList()
             this.bookList = tmp
             result.dispatchUpdatesTo(this)

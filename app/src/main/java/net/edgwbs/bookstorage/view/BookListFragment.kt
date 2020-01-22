@@ -27,6 +27,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import info.androidhive.fontawesome.FontDrawable
 import kotlinx.android.synthetic.main.nav_item.view.*
+import kotlinx.coroutines.Job
 
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
@@ -44,6 +45,7 @@ class BookListFragment : Fragment() {
     }
     private lateinit var binding: FragmentBookListMainBinding
     private lateinit var adapter: BookListAdapter
+    private lateinit var loadBookJob: Job
     private var page: Int = 1
     private var state: String? = null
 
@@ -65,7 +67,7 @@ class BookListFragment : Fragment() {
 
     private val loadBookListCallback = object : RequestCallback {
         override fun onRequestSuccess() {
-            Snackbar.make(binding.root , "request success", Snackbar.LENGTH_LONG).show()
+            // Snackbar.make(binding.root , "request success", Snackbar.LENGTH_LONG).show()
         }
 
         override fun onRequestFail() {
@@ -73,11 +75,17 @@ class BookListFragment : Fragment() {
         }
 
         override fun onFail() {
-            Snackbar.make(binding.root , "fail", Snackbar.LENGTH_LONG).show()
+            val snackbar = Snackbar.make(binding.root , "fail", Snackbar.LENGTH_LONG)
+            snackbar.setAction("Reload", object : View.OnClickListener {
+                override fun onClick(v: View?) {
+                    Log.d("tag", "click")
+                }
+            })
+            snackbar.show()
         }
 
         override fun onFinal() {
-            Thread.sleep(4000)
+            Thread.sleep(2000)
             binding.isLoading = false
         }
     }
@@ -105,36 +113,21 @@ class BookListFragment : Fragment() {
         binding.isLoading = true
 
         val context = binding.root.context
-        initTab(binding.boolListContent.tabLayout, context)
+        initTab(binding.bookListContent.tabLayout, context)
         initFab(binding.bookRegisterFab, context)
 
-        viewModel.clearCachedBook()
-        viewModel.loadBookList(page, state, loadBookListCallback)
 
+        observeViewModel(viewModel)
+        viewModel.clearCachedBook()
+        loadBookJob = viewModel.loadBookList(page, state, loadBookListCallback)
         return binding.root
     }
-
-//    private fun setRVScrollListener(rv: RecyclerView) {
-//        val scrollListener = RecyclerViewLoadMoreScroll(rv.layoutManager as LinearLayoutManager)
-//        scrollListener.setOnLoadMoreListener(object : OnLoadMoreListener {
-//            override fun onLoadMore() {
-//                scrollListener.setLoading()
-//                binding.isMoreLoading = true
-//                viewModel.nextLoadBookList(state) {
-//                    scrollListener.setLoaded()
-//                    binding.isMoreLoading = false
-//                }
-//            }
-//        })
-//        rv.addOnScrollListener(scrollListener)
-//    }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         this.activity?.let {
             initMenu(it, binding.root)
         }
-        observeViewModel(viewModel)
     }
 
     private fun observeViewModel(viewModel: BookListViewModel) {
@@ -161,7 +154,8 @@ class BookListFragment : Fragment() {
         toggle.syncState()
 
         val burgerItems = mutableListOf<BurgerMenu>()
-        burgerItems.add(BurgerMenu("ログアウト"))
+
+        burgerItems.add(BurgerMenu("ログアウト", resources.getString(R.string.fa_sign_out_alt_solid)))
         val navView = view.findViewById<ListView>(R.id.nav_menu_items)
         navView.adapter = MenuItemAdapter(view.context, burgerItems)
     }
@@ -175,6 +169,7 @@ class BookListFragment : Fragment() {
             override fun onTabUnselected(tab: TabLayout.Tab) {}
             override fun onTabReselected(tab: TabLayout.Tab) {}
             override fun onTabSelected(tab: TabLayout.Tab) {
+                loadBookJobCancel()
 
                 state = when (tab.text) {
                     "未読" -> "not_read"
@@ -195,6 +190,7 @@ class BookListFragment : Fragment() {
         fab.setImageDrawable(drawable)
 
         fab.setOnClickListener{
+            loadBookJobCancel()
             val fragment = BookRegisterFragment()
             val transaction = fragmentManager?.beginTransaction()
             transaction?.let {
@@ -205,12 +201,18 @@ class BookListFragment : Fragment() {
             }
         }
     }
+
+    private fun loadBookJobCancel() {
+        if (::loadBookJob.isInitialized) {
+            loadBookJob.cancel()
+            Log.d("tag", "cancel!!!!")
+        }
+    }
 }
 
-class BurgerMenu(private val title: String){
-    fun getTitle(): String {
-        return title
-    }
+class BurgerMenu(private val title: String, private val icon: String){
+    fun getTitle(): String = title
+    fun getIcon(): String = icon
 }
 class MenuItemAdapter(private val context: Context, private val items: List<BurgerMenu>): BaseAdapter() {
     private val layoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -231,6 +233,7 @@ class MenuItemAdapter(private val context: Context, private val items: List<Burg
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val textView = layoutInflater.inflate(R.layout.nav_item, parent, false)
         textView.nav_item.text = items[position].getTitle()
+        textView.nav_item_icon.text = items[position].getIcon()
         return textView
     }
 }
