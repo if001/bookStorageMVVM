@@ -50,25 +50,29 @@ class SearchResultBookListViewModel(application: Application): AndroidViewModel(
                         cachedResultList.add(x.Item)
                     }
                     searchResultsLiveData.postValue(cachedResultList)
+                    null
+                } else {
+                    response.errorBody()
                 }
             }
             result
+                .onSuccess {
+                    if( it == null){
+                        requestCallback.onRequestSuccess()
+                    } else {
+                        requestCallback.onRequestFail()
+                    }
+                }
                 .onFailure {
-                    Log.d("eeeeeeee", it.toString())
-                    it.stackTrace
+                    Log.d("exception:", "load rakuten books fail:$it")
                     requestCallback.onFail()
                 }.also {
-                    Thread.sleep(4000)
-                    // requestEndCallback()
                     requestCallback.onFinal()
                 }
         }
     }
 
     fun registerBooks(books: MutableList<BookResult?>, requestCallback: RequestCallback) {
-        Log.d("eeee", books.toString())
-
-
         viewModelScope.launch {
             val result = kotlin.runCatching {
                 val creates = books.mapNotNull{
@@ -83,7 +87,6 @@ class SearchResultBookListViewModel(application: Application): AndroidViewModel(
                             bookResult.itemUrl,
                             bookResult.affiliateUrl
                         )
-                        Log.d("eeeeeeee3333", form.toString())
                         async { bookRepository.createBookWith(form) }
                     }
                 }
@@ -97,11 +100,6 @@ class SearchResultBookListViewModel(application: Application): AndroidViewModel(
                 }
             }
             result
-                .onFailure {
-                    Log.d("eeeeeeee", it.toString())
-                    it.stackTrace
-                    requestCallback.onFail()
-                }
                 .onSuccess {
                     if(it.isEmpty()){
                         requestCallback.onRequestSuccess()
@@ -109,10 +107,11 @@ class SearchResultBookListViewModel(application: Application): AndroidViewModel(
                         requestCallback.onRequestFail()
                     }
                 }
+                .onFailure {
+                    Log.d("exception:", "register books fail:$it")
+                    requestCallback.onFail()
+                }
                 .also {
-                    Thread.sleep(4000)
-                    // requestEndCallback()
-                    // afterRequest.onFinal()
                     requestCallback.onFinal()
                 }
         }

@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import info.androidhive.fontawesome.FontDrawable
 import kotlinx.android.synthetic.main.nav_item.view.*
@@ -35,6 +36,7 @@ import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.utils.OnLoadMoreListener
 import net.edgwbs.bookstorage.utils.RecyclerViewLoadMoreScroll
 import net.edgwbs.bookstorage.viewModel.BookListViewModel
+import net.edgwbs.bookstorage.viewModel.RequestCallback
 
 class BookListFragment : Fragment() {
     private val viewModel:BookListViewModel by lazy {
@@ -60,12 +62,30 @@ class BookListFragment : Fragment() {
             }
         }
     }
+
+    private val loadBookListCallback = object : RequestCallback {
+        override fun onRequestSuccess() {
+            Snackbar.make(binding.root , "request success", Snackbar.LENGTH_LONG).show()
+        }
+
+        override fun onRequestFail() {
+            Snackbar.make(binding.root , "request fail", Snackbar.LENGTH_LONG).show()
+        }
+
+        override fun onFail() {
+            Snackbar.make(binding.root , "fail", Snackbar.LENGTH_LONG).show()
+        }
+
+        override fun onFinal() {
+            Thread.sleep(4000)
+            binding.isLoading = false
+        }
+    }
     private val moreLoadButtonClickCallback = object: MoreLoadButtonCallback {
         override fun onClick() {
             binding.isMoreLoading = true
-            viewModel.nextLoadBookList(state) {
-                binding.isMoreLoading = false
-            }
+            viewModel.nextLoadBookList(state, loadBookListCallback)
+            // binding.isMoreLoading = false
         }
     }
 
@@ -87,7 +107,9 @@ class BookListFragment : Fragment() {
         val context = binding.root.context
         initTab(binding.boolListContent.tabLayout, context)
         initFab(binding.bookRegisterFab, context)
-        // setRVScrollListener(rv)
+
+        viewModel.clearCachedBook()
+        viewModel.loadBookList(page, state, loadBookListCallback)
 
         return binding.root
     }
@@ -161,7 +183,7 @@ class BookListFragment : Fragment() {
                     else -> null
                 }
                 viewModel.clearCachedBook()
-                viewModel.loadBookList(page, state) {}
+                viewModel.loadBookList(page, state, loadBookListCallback)
             }
         })
     }

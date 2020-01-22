@@ -23,7 +23,7 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
 
     init {
         clearCachedBook()
-        loadBookList(1, null) {}
+        //loadBookList(1, null)
     }
 
     fun clearCachedBook() {
@@ -32,14 +32,14 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
 
     fun getLiveData(): MutableLiveData<List<Book>> = bookListLiveData
 
-    fun nextLoadBookList(state: String?, requestEndCallback: () -> Unit) {
+    fun nextLoadBookList(state: String?, requestCallback: RequestCallback) {
         if (perPage * page < totalCount) {
             page += 1
-            loadBookList(page, state, requestEndCallback)
+            loadBookList(page, state, requestCallback)
         }
     }
 
-    fun loadBookList(page: Int, state: String?, requestEndCallback:() -> Unit) {
+    fun loadBookList(page: Int, state: String?, requestCallback: RequestCallback){
         viewModelScope.launch {
             kotlin.runCatching {
                 val request = repository.getBooks(page, perPage, state)
@@ -48,22 +48,24 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
                     request.body()?.content?.let {
                         totalCount = it.totalCount
                         cachedBookList.addAll(it.books)
-
-                        cachedBookList.forEach{ x -> Log.d("taaaa",x.id.toString() + "------" + x.title)}
-
                         bookListLiveData.postValue(cachedBookList.toList())
                     }
+                    null
                 } else{
-                    request.errorBody()?.let{
-                        Log.d("eeeeeeee", it.string())
-                    }
+                    request.errorBody()
+                }
+            }.onSuccess {
+                if (it == null){
+                    requestCallback.onRequestSuccess()
+                } else {
+                    Log.d("error", "loadBookList: request fail:$it")
+                    requestCallback.onRequestFail()
                 }
             }.onFailure {
-                Log.d("eeeeeeee", it.toString())
-                it.stackTrace
+                Log.d("exception", "loadBookList: fail:$it")
+                requestCallback.onFail()
             }.also {
-                Thread.sleep(4000)
-                requestEndCallback()
+                requestCallback.onFinal()
             }
         }
     }

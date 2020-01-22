@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import info.androidhive.fontawesome.FontDrawable
 import kotlinx.coroutines.delay
 import net.edgwbs.bookstorage.R
@@ -38,6 +39,7 @@ class BookRegisterFragment : Fragment() {
         override fun onRequestFail() {}
         override fun onFail() {}
         override fun onFinal() {
+            Thread.sleep(4000)
             closeSearchBox()
             binding.isLoading = false
         }
@@ -52,8 +54,11 @@ class BookRegisterFragment : Fragment() {
                 it.replace(R.id.fragment_container, fragment).commit()
             }
         }
-        override fun onRequestFail() {}
+        override fun onRequestFail() {
+            Snackbar.make(binding.root , "request fail", Snackbar.LENGTH_LONG).show()
+        }
         override fun onFail() {
+            Snackbar.make(binding.root , "fail", Snackbar.LENGTH_LONG).show()
 //            binding.isError = true
 //            binding.errorMessage = "登録に失敗しました。"
 //            val scope = CoroutineScope(Dispatchers.Default)
@@ -62,7 +67,9 @@ class BookRegisterFragment : Fragment() {
 //                binding.isError = false
 //            }
         }
-        override fun onFinal() {}
+        override fun onFinal() {
+            Thread.sleep(4000)
+        }
     }
 
     override fun onCreateView(
