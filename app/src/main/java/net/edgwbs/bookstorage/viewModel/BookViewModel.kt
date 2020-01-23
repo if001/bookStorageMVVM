@@ -45,4 +45,8 @@ class BookViewModel(application: Application): AndroidViewModel(application) {
                 }
         }
     }
+
+    fun changeState(book: Book, requestCallback: RequestCallback): Job {
+        return BookModelCommon.changeState(book, viewModelScope, repository, requestCallback)
+    }
 }

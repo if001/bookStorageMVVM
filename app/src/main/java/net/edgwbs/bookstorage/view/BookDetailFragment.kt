@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.fragment_book_register.view.*
 import kotlinx.coroutines.Job
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookDetailBinding
+import net.edgwbs.bookstorage.model.Book
 import net.edgwbs.bookstorage.utils.FontAwesomeTextView
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookViewModel
@@ -26,6 +27,7 @@ class BookDetailFragment : Fragment() {
     }
     private lateinit var binding: FragmentBookDetailBinding
     private lateinit var job: Job
+    private var bookIDLong: Long? = null
 
     private val loadBookCallback = object: RequestCallback {
         override fun onRequestSuccess() {
@@ -44,6 +46,24 @@ class BookDetailFragment : Fragment() {
         }
     }
 
+    private val changeStateCallback = object: RequestCallback {
+        override fun onRequestSuccess() {
+        }
+
+        override fun onRequestFail() {
+            // toPrevPage()
+        }
+
+        override fun onFail() {
+            // toPrevPage()
+        }
+
+        override fun onFinal() {
+            Thread.sleep(2000)
+            binding.isStateChangeLoading = false
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -55,14 +75,15 @@ class BookDetailFragment : Fragment() {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_book_detail, container, false)
 
         binding.isLoading = true
+        binding.isStateChangeLoading = true
 
         binding.backButton.setOnClickListener {
             toPrevPage()
         }
 
-        val bookIDLong = bookID?.toLongOrNull()
+        bookIDLong = bookID?.toLongOrNull()
         if (bookIDLong != null) {
-            job = viewModel.loadBook(bookIDLong, loadBookCallback)
+            job = viewModel.loadBook(bookIDLong!!, loadBookCallback)
         } else {
             toPrevPage()
         }
@@ -81,8 +102,14 @@ class BookDetailFragment : Fragment() {
                 viewLifecycleOwner,
                 Observer { book ->
                     if (book != null) {
-                        binding.isLoading = false
+                        binding.bookStateIcon.setOnClickListener{
+                            binding.isStateChangeLoading = true
+                            viewModel.changeState(book, changeStateCallback)
+                        }
+                        job = viewModel.loadBook(bookIDLong!!, loadBookCallback)
                         binding.book = book
+                        binding.isLoading = false
+                        binding.isStateChangeLoading = false
                     }
                 })
         }

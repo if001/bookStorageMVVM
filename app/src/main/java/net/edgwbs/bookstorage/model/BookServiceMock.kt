@@ -35,11 +35,11 @@ import kotlinx.coroutines.*
          TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
      }
 
-     override suspend fun bookStateStart(id: Long): Response<BookResponse<Publisher>> {
+     override suspend fun bookStateStart(id: Long): Response<Void> {
          TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
      }
 
-     override suspend fun bookStateEnd(id: Long): Response<BookResponse<Publisher>> {
+     override suspend fun bookStateEnd(id: Long): Response<Void> {
          TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
      }
 

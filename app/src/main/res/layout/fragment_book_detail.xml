@@ -6,6 +6,7 @@
 
     <data>
         <variable name="isLoading" type="boolean" />
+        <variable name="isStateChangeLoading" type="boolean" />
         <variable name="book" type="net.edgwbs.bookstorage.model.Book" />
     </data>
 
@@ -99,6 +100,7 @@
                         android:layout_weight="1"
                         app:imageUrl="@{book.mediumImageUrl}"
                         />
+
                 </LinearLayout>
 
                 <include layout="@layout/vidider" />
@@ -109,10 +111,6 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="0dp"
                     android:orientation="vertical"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp"
-                    android:paddingLeft="20dp"
-                    android:paddingRight="20dp"
                     >
 
                     <LinearLayout
@@ -120,35 +118,70 @@
                         android:layout_height="wrap_content"
                         android:layout_margin="0dp"
                         android:orientation="horizontal">
-                        <LinearLayout
+                        <androidx.constraintlayout.widget.ConstraintLayout
                             android:id="@+id/book_state"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_margin="0dp"
+                            android:padding="10dp"
                             android:orientation="vertical"
                             android:layout_weight="2"
                             android:elevation="20dp"
+                            android:background="@color/colorPrimary"
                             >
+                            <LinearLayout
+                                android:layout_width="55dp"
+                                android:layout_height="55dp"
+                                android:background="@drawable/round_button"
+                                android:gravity="center"
+                                app:layout_constraintTop_toTopOf="@+id/book_state"
+                                app:layout_constraintStart_toStartOf="@+id/book_state"
+                                app:layout_constraintEnd_toEndOf="@+id/book_state"
+                                app:layout_constraintBottom_toBottomOf="@+id/book_state"
+                                app:visibleGone="@{isStateChangeLoading}"
+                                >
+                                <ProgressBar
+                                    android:id="@+id/progressbar"
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:layout_gravity="center"
+                                    android:indeterminate="true"
+                                    android:indeterminateTintMode="src_in"
+                                    android:indeterminateTint="@color/colorWhite"
+                                    />
+                            </LinearLayout>
                             <net.edgwbs.bookstorage.utils.FontAwesomeButtonView
                                 android:id="@+id/book_state_icon"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textColor="@color/colorPrimary"
-                                android:textSize="35sp"
+                                android:layout_width="55dp"
+                                android:layout_height="55dp"
+                                android:textColor="@color/colorWhite"
+                                android:textSize="25sp"
                                 android:layout_margin="0dp"
-                                android:gravity="center_horizontal"
+                                android:background="@drawable/round_button"
+                                android:gravity="center"
+                                app:layout_constraintTop_toTopOf="@+id/book_state"
+                                app:layout_constraintStart_toStartOf="@+id/book_state"
+                                app:layout_constraintEnd_toEndOf="@+id/book_state"
+                                app:layout_constraintBottom_toBottomOf="@+id/book_state"
                                 app:solid_icon="true"
                                 app:statusIcon="@{book.readState}"
+                                app:visibleGone="@{!isStateChangeLoading}"
                                 />
                             <TextView
                                 android:id="@+id/state_text"
                                 android:layout_height="wrap_content"
                                 android:layout_width="match_parent"
                                 android:textSize="12sp"
-                                android:gravity="center_horizontal"
+                                android:gravity="center"
+                                android:textColor="@color/colorWhite"
+                                app:layout_constraintTop_toBottomOf="@+id/book_state_icon"
+                                app:layout_constraintStart_toStartOf="@+id/book_state"
+                                app:layout_constraintEnd_toEndOf="@+id/book_state"
+                                app:layout_constraintBottom_toBottomOf="@+id/book_state"
                                 app:statusText="@{book.readState}"
+                                app:visibleGone="@{!isStateChangeLoading}"
                                 />
-                        </LinearLayout>
+                        </androidx.constraintlayout.widget.ConstraintLayout>
 
                         <TextView
                             android:id="@+id/start_at"

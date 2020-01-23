@@ -249,7 +249,7 @@ class BookListFragment : Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val book = adapter.getItemByPosition(viewHolder.adapterPosition)
                 book?.let {
-                    viewModel.chengeState(it,stateChangeCallback)
+                    viewModel.changeState(it,stateChangeCallback)
                 }
                 adapter.notifyItemChanged(viewHolder.adapterPosition)
                 Log.d("tag:::::::::", direction.toString())

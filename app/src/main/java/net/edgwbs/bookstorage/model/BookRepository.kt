@@ -11,8 +11,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 class BookRepository{
     private val baseURL = "http://10.0.2.2:8081"
 
-    // private val bookService: BookService = client().create(BookService::class.java)
-    private val bookService: BookService = BookServiceMock()
+    private val bookService: BookService = client().create(BookService::class.java)
+    // private val bookService: BookService = BookServiceMock()
 
     private fun client(): Retrofit {
         // val httpLogging = HttpLoggingInterceptor()
@@ -45,11 +45,9 @@ class BookRepository{
     suspend fun createPublisher(publisherForm: PublisherForm): Response<BookResponse<Publisher>>
             = bookService.createPublisher(publisherForm)
 
-    suspend fun bookReadStart(id: Long): Response<BookResponse<Publisher>>
-            = bookService.bookStateStart(id)
+    suspend fun bookReadStart(id: Long): Response<Void> = bookService.bookStateStart(id)
 
-    suspend fun bookReadEnd(id: Long): Response<BookResponse<Publisher>>
-            = bookService.bookStateEnd(id)
+    suspend fun bookReadEnd(id: Long): Response<Void> = bookService.bookStateEnd(id)
 
 
     companion object Factory {

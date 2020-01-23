@@ -48,34 +48,8 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
     }
     fun getLiveData(): LiveData<PagedList<Book>> = bookPagedList
 
-    fun chengeState(book: Book, requestCallback: RequestCallback): Job {
-        return viewModelScope.launch {
-            val result = kotlin.runCatching {
-                val request = when (book.readState) {
-                    ReadState.NotRead.value -> repository.bookReadStart(book.id)
-                    ReadState.Reading.value -> repository.bookReadEnd(book.id)
-                    ReadState.Read.value -> repository.bookReadStart(book.id)
-                    else -> null
-                }
-                if (request == null) {
-                    throw IllegalArgumentException("bad status")
-                } else if (request.isSuccessful) {
-                    // success
-                } else {
-                    request.errorBody()
-                }
-            }
-            result
-                .onSuccess {
-                    requestCallback.onRequestSuccess()
-                }
-                .onFailure {
-                    requestCallback.onFail()
-                }
-                .also {
-                    requestCallback.onFinal()
-                }
-        }
+    fun changeState(book: Book, requestCallback: RequestCallback): Job {
+        return BookModelCommon.changeState(book, viewModelScope, repository, requestCallback)
     }
 
     fun clearCachedBook() {
