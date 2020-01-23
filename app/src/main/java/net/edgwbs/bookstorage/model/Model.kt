@@ -9,10 +9,10 @@ data class BookResponse<T> (
 
 data class PaginateBook (
     val books: List<Book>,
-    val totalCount: Int
+    val total_count: Long // TODO camel case 対応できない？？？
 ){
     companion object {
-        private const val totalCount = 5
+        private const val totalCount: Long = 5
         private val t = (0..totalCount).map{ Book.createMock(it.toLong(), "mock title$it", null) }
         fun mockBooks(page:Int, perPage:Int): PaginateBook {
             var start = (page-1)*perPage
@@ -22,10 +22,10 @@ data class PaginateBook (
                 end = 0
             }
             if (perPage > totalCount) {
-                end = totalCount
+                end = totalCount.toInt()
             }
             if (perPage == -1) {
-                end = totalCount
+                end = totalCount.toInt()
             }
             return PaginateBook(t.subList(start, end), totalCount)
         }

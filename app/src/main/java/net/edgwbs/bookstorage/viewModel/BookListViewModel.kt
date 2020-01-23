@@ -23,10 +23,9 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
     private var cachedBookList: MutableList<Book> = mutableListOf()
 
 
-    private val perPage: Int = 10
+    private val perPage: Int = 30
 
     var page: Int = 1
-    var totalCount: Int = 0
 
 
     private val bookPagedList: LiveData<PagedList<Book>>
@@ -64,7 +63,6 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
                 Log.d("uuuuuuuuuuu", request.toString())
                 if (request.isSuccessful) {
                     request.body()?.content?.let {
-                        totalCount = it.totalCount
                         cachedBookList.addAll(it.books)
                         bookListLiveData.postValue(cachedBookList.toList())
                     }

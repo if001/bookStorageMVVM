@@ -1,5 +1,6 @@
 package net.edgwbs.bookstorage.model
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.DataSource
 import androidx.paging.PageKeyedDataSource
@@ -17,7 +18,7 @@ class BookDataSource(private val scope: CoroutineScope, private val perPage: Int
         params: LoadInitialParams<Int>,
         callback: LoadInitialCallback<Int, Book>) {
         callAPI(firstPage, perPage) { books, hasMore ->
-            val key = if (hasMore)  1 else null
+            val key = if (hasMore) 1 else null
             val bookWithEmpty = mutableListOf(Book.forEmpty())
             bookWithEmpty.addAll(books)
             callback.onResult(bookWithEmpty,  null, key)
@@ -55,7 +56,7 @@ class BookDataSource(private val scope: CoroutineScope, private val perPage: Int
                 val request = repository.getBooks(page, perPage, null)
                 state = if (request.isSuccessful) {
                     request.body()?.content?.let {
-                        val hasMore = it.totalCount > perPage * page
+                        val hasMore = it.total_count > perPage * page
                         callback(it.books, hasMore)
                     }
                     NetworkState.SUCCESS
