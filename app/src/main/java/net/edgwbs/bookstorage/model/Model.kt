@@ -13,7 +13,7 @@ data class PaginateBook (
 ){
     companion object {
         private const val totalCount = 5
-        private val t = (0..totalCount).map{ Book.createMock(it.toLong(), "mock title$it") }
+        private val t = (0..totalCount).map{ Book.createMock(it.toLong(), "mock title$it", null) }
         fun mockBooks(page:Int, perPage:Int): PaginateBook {
             var start = (page-1)*perPage
             var end = page*perPage
@@ -24,7 +24,9 @@ data class PaginateBook (
             if (perPage > totalCount) {
                 end = totalCount
             }
-
+            if (perPage == -1) {
+                end = totalCount
+            }
             return PaginateBook(t.subList(start, end), totalCount)
         }
     }
@@ -52,16 +54,17 @@ data class Book(
 
     companion object {
         fun forEmpty(): Book {
-            return Book(-2, "", "", null, null, null,null,null,0,null,null,null)
+            return Book(-2, "", "", null, null, null,null,null,1,null,null,null)
         }
 
-        fun createMock(id: Long, title: String): Book {
-            return Book(id, "", title, null, null, null,null,null,0,null,null,null)
+        fun createMock(id: Long, title: String, state: ReadState?): Book {
+            val s = state?.value ?: ReadState.NotRead.value
+            return Book(id, "", title, null, null, null,null,null, s,null,null,null)
         }
     }
 }
 
-enum class ReadState(val state: Int) {
+enum class ReadState(val value: Int) {
     NotRead(1),
     Reading(2),
     Read(3)

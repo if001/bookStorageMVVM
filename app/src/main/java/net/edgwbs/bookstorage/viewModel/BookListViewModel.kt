@@ -12,10 +12,9 @@ import androidx.paging.PageKeyedDataSource
 import androidx.paging.PagedList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import net.edgwbs.bookstorage.model.Book
-import net.edgwbs.bookstorage.model.BookDataSourceFactory
-import net.edgwbs.bookstorage.model.BookRepository
-import net.edgwbs.bookstorage.model.NetworkState
+import net.edgwbs.bookstorage.model.*
+import java.lang.Error
+import java.lang.Exception
 import kotlin.concurrent.thread
 
 class BookListViewModel(application: Application): AndroidViewModel(application) {
@@ -47,10 +46,37 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
 
         bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig).build()
     }
-    fun getLiveData2(): LiveData<PagedList<Book>> = bookPagedList
+    fun getLiveData(): LiveData<PagedList<Book>> = bookPagedList
 
-
-
+    fun chengeState(book: Book, requestCallback: RequestCallback): Job {
+        return viewModelScope.launch {
+            val result = kotlin.runCatching {
+                val request = when (book.readState) {
+                    ReadState.NotRead.value -> repository.bookReadStart(book.id)
+                    ReadState.Reading.value -> repository.bookReadEnd(book.id)
+                    ReadState.Read.value -> repository.bookReadStart(book.id)
+                    else -> null
+                }
+                if (request == null) {
+                    throw IllegalArgumentException("bad status")
+                } else if (request.isSuccessful) {
+                    // success
+                } else {
+                    request.errorBody()
+                }
+            }
+            result
+                .onSuccess {
+                    requestCallback.onRequestSuccess()
+                }
+                .onFailure {
+                    requestCallback.onFail()
+                }
+                .also {
+                    requestCallback.onFinal()
+                }
+        }
+    }
 
     fun clearCachedBook() {
         cachedBookList = mutableListOf()

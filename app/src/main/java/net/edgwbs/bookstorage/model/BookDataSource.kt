@@ -72,6 +72,10 @@ class BookDataSource(private val scope: CoroutineScope, private val perPage: Int
     fun getNetworkState(): MutableLiveData<NetworkState> {
         return networkState
     }
+
+    fun removeData(data: Book) {
+
+    }
 }
 
 

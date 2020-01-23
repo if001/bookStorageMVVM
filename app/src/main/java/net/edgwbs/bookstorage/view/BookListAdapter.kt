@@ -54,6 +54,10 @@ class BookListAdapter(
         }
     }
 
+    fun getItemByPosition(position: Int): Book? {
+        return getItem(position)
+
+    }
 
     companion object {
         val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Book>() {

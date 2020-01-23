@@ -3,6 +3,12 @@ package net.edgwbs.bookstorage.view
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,8 +16,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.BaseAdapter
+import android.widget.LinearLayout
 import android.widget.ListView
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.widget.DrawableUtils
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -23,12 +31,14 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.paging.PagedList
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import info.androidhive.fontawesome.FontDrawable
+import kotlinx.android.synthetic.main.fragment_book_detail.*
 import kotlinx.android.synthetic.main.nav_item.view.*
 import kotlinx.coroutines.Job
 
@@ -36,6 +46,7 @@ import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
 import net.edgwbs.bookstorage.model.Book
 import net.edgwbs.bookstorage.model.BookService
+import net.edgwbs.bookstorage.utils.FontAwesomeTextView
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.utils.OnLoadMoreListener
 import net.edgwbs.bookstorage.utils.RecyclerViewLoadMoreScroll
@@ -93,6 +104,13 @@ class BookListFragment : Fragment() {
         }
     }
 
+    private val stateChangeCallback = object : RequestCallback {
+        override fun onRequestSuccess() {}
+        override fun onRequestFail() {}
+        override fun onFail() {}
+        override fun onFinal() {}
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -109,12 +127,12 @@ class BookListFragment : Fragment() {
         adapter = BookListAdapter(bookClickCallback)
         val rv = binding.root.findViewById<RecyclerView>(R.id.book_list)
         rv.setHasFixedSize(true)
-
         rv.addItemDecoration(DividerItemDecoration(rv.context, LinearLayoutManager(activity).orientation))
 
+        val swipeToDismissTouchHelper = getSwipeToDismissTouchHelper(adapter)
+        swipeToDismissTouchHelper.attachToRecyclerView(rv)
+
         observeViewModel(viewModel)
-        // viewModel.clearCachedBook()
-        // loadBookJob = viewModel.loadBookList(page, state, loadBookListCallback)
 
         rv.adapter = adapter
         return binding.root
@@ -129,17 +147,8 @@ class BookListFragment : Fragment() {
 
     private fun observeViewModel(viewModel: BookListViewModel) {
         //データをSTARTED かRESUMED状態である場合にのみ、アップデートするように、LifecycleOwnerを紐付け、ライフサイクル内にオブザーバを追加
-//        viewModel.getLiveData().observe(
-//            viewLifecycleOwner,
-//            Observer { books ->
-//                if (books != null) {
-//                    Log.d("debug", "observe start")
-//                    adapter.setBookList(books)
-//                    binding.isLoading = false
-//                }
-//            })
-        viewModel.getLiveData2().removeObservers(viewLifecycleOwner)
-        viewModel.getLiveData2().observe(
+        viewModel.getLiveData().removeObservers(viewLifecycleOwner)
+        viewModel.getLiveData().observe(
             viewLifecycleOwner,
             Observer { books ->
                 if (books != null) {
@@ -222,6 +231,79 @@ class BookListFragment : Fragment() {
             Log.d("tag", "cancel!!!!")
         }
     }
+
+    private fun getSwipeToDismissTouchHelper(adapter: BookListAdapter) =
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            //スワイプ時に実行
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val book = adapter.getItemByPosition(viewHolder.adapterPosition)
+                book?.let {
+                    viewModel.chengeState(it,stateChangeCallback)
+                }
+                adapter.notifyItemChanged(viewHolder.adapterPosition)
+                Log.d("tag:::::::::", direction.toString())
+
+            }
+
+            //スワイプした時の背景を設定
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                super.onChildDraw(
+                    c,
+                    recyclerView,
+                    viewHolder,
+                    dX,
+                    dY,
+                    actionState,
+                    isCurrentlyActive
+                )
+                val itemView = viewHolder.itemView
+
+                val background = ColorDrawable()
+                background.color = resources.getColor(R.color.colorPrimary)
+
+                val icon = FontDrawable(context, R.string.fa_paper_plane_solid, true, false)
+                icon.setTextColor(ContextCompat.getColor(context!!, android.R.color.black))
+                
+
+                if (dX < 0)
+                    background.setBounds(
+                        itemView.right + dX.toInt(),
+                        itemView.top,
+                        itemView.right,
+                        itemView.bottom
+                    )
+                else
+                    background.setBounds(
+                        itemView.left,
+                        itemView.top,
+                        itemView.left + dX.toInt(),
+                        itemView.bottom
+                    )
+                // swipedView.draw(c)
+                background.draw(c)
+                icon.draw(c)
+            }
+        })
+
 }
 
 class BurgerMenu(private val title: String, private val icon: String){

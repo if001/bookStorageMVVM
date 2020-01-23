@@ -45,6 +45,13 @@ class BookRepository{
     suspend fun createPublisher(publisherForm: PublisherForm): Response<BookResponse<Publisher>>
             = bookService.createPublisher(publisherForm)
 
+    suspend fun bookReadStart(id: Long): Response<BookResponse<Publisher>>
+            = bookService.bookStateStart(id)
+
+    suspend fun bookReadEnd(id: Long): Response<BookResponse<Publisher>>
+            = bookService.bookStateEnd(id)
+
+
     companion object Factory {
         val instance: BookRepository
         @Synchronized get() {

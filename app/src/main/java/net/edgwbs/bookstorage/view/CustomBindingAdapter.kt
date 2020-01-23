@@ -28,10 +28,10 @@ object CustomBindingAdapter {
     @BindingAdapter("app:statusIcon")
     fun statusIcon(view: TextView, readState: Int) {
         return when(readState) {
-            ReadState.NotRead.state -> {
+            ReadState.NotRead.value -> {
                 view.text = view.resources.getText(R.string.fa_book_solid).toString()
             }
-            ReadState.Reading.state -> {
+            ReadState.Reading.value -> {
                 view.text = view.resources.getText(R.string.fa_book_open_solid).toString()
             }
             else -> {
@@ -44,10 +44,10 @@ object CustomBindingAdapter {
     @BindingAdapter("app:statusText")
     fun statusText(view: TextView, readState: Int) {
         return when(readState) {
-            ReadState.NotRead.state -> {
+            ReadState.NotRead.value -> {
                 view.text = "未読"
             }
-            ReadState.Reading.state -> {
+            ReadState.Reading.value -> {
                 view.text = "読中"
             }
             else -> {
