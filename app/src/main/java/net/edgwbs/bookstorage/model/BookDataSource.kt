@@ -18,7 +18,9 @@ class BookDataSource(private val scope: CoroutineScope, private val perPage: Int
         callback: LoadInitialCallback<Int, Book>) {
         callAPI(firstPage, perPage) { books, hasMore ->
             val key = if (hasMore)  1 else null
-            callback.onResult(books,  null, key)
+            val bookWithEmpty = mutableListOf(Book.forEmpty())
+            bookWithEmpty.addAll(books)
+            callback.onResult(bookWithEmpty,  null, key)
         }
     }
 

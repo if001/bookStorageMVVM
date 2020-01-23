@@ -5,7 +5,6 @@
 
     <data>
         <variable name="isLoading" type="boolean" />
-        <variable name="isMoreLoading" type="boolean" />
     </data>
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
@@ -34,6 +33,15 @@
                 app:visibleGone="@{!isLoading}"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 />
+
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/book_list"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+                <include layout="@layout/vidider" />
+            </LinearLayout>
 
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tab_layout"

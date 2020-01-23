@@ -24,8 +24,6 @@ class BookListAdapter(
     class BookViewHolder(var binding: FragmentBookCardBinding) : RecyclerView.ViewHolder(binding.root)
     class EmptyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
-    private var bookList: MutableList<Book>? = null
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return if (viewType == VIEW_TYPE_ITEM) {
             val binding: FragmentBookCardBinding = DataBindingUtil.inflate(
@@ -51,7 +49,7 @@ class BookListAdapter(
 
     override fun getItemViewType(position: Int): Int {
         return when {
-            bookList?.get(position) == Book.forEmpty() -> VIEW_TYPE_EMPTY_ITEM
+            getItem(position) == Book.forEmpty() -> VIEW_TYPE_EMPTY_ITEM
             else -> VIEW_TYPE_ITEM
         }
     }
@@ -72,8 +70,4 @@ class BookListAdapter(
 
 interface BookClickCallback {
     fun onClick(book: Book)
-}
-
-interface MoreLoadButtonCallback {
-    fun onClick()
 }

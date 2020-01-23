@@ -22,6 +22,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.paging.PagedList
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -109,6 +110,7 @@ class BookListFragment : Fragment() {
         val rv = binding.root.findViewById<RecyclerView>(R.id.book_list)
         rv.setHasFixedSize(true)
 
+        rv.addItemDecoration(DividerItemDecoration(rv.context, LinearLayoutManager(activity).orientation))
 
         observeViewModel(viewModel)
         // viewModel.clearCachedBook()

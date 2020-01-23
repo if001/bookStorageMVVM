@@ -6,7 +6,6 @@
 
     <data>
         <variable name="isLoading" type="boolean" />
-        <variable name="isMoreLoading" type="boolean" />
     </data>
 
     <androidx.drawerlayout.widget.DrawerLayout
@@ -23,7 +22,6 @@
                 android:id="@+id/book_list_content"
                 layout="@layout/fragment_book_list_contents"
                 app:isLoading="@{isLoading}"
-                app:isMoreLoading="@{isMoreLoading}"
                 />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton

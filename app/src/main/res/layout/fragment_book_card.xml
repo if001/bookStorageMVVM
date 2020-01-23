@@ -57,6 +57,5 @@
                 app:solid_icon="true"
                 />
         </LinearLayout>
-        <include layout="@layout/vidider" />
     </LinearLayout>
 </layout>

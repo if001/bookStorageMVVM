@@ -71,7 +71,6 @@ class RakutenBookListAdapter(
     fun setSearchResult(bookList: List<BookResult>) {
         if (this.bookList == null){
             val tmp = bookList.toMutableList()
-            // tmp.add(Book.forMoreLoad())
             this.bookList = tmp
             notifyItemRangeInserted(0, tmp.size)
         } else {
