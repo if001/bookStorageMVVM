@@ -49,12 +49,11 @@ class BookDataSource(private val scope: CoroutineScope, private val perPage: Int
     }
 
     private fun callAPI(page: Int, perPage: Int, callback: (books: List<Book>, hasMore: Boolean) -> Unit) {
-        var state = NetworkState.RUNNING
-        networkState.postValue(state)
+        networkState.postValue(NetworkState.RUNNING)
         scope.launch {
             kotlin.runCatching {
                 val request = repository.getBooks(page, perPage, null)
-                state = if (request.isSuccessful) {
+                if (request.isSuccessful) {
                     request.body()?.content?.let {
                         val hasMore = it.total_count > perPage * page
                         callback(it.books, hasMore)
@@ -63,10 +62,13 @@ class BookDataSource(private val scope: CoroutineScope, private val perPage: Int
                 } else {
                     NetworkState.FAILED
                 }
+            }.onSuccess { state ->
+                networkState.postValue(state)
             }.onFailure {
-                state = NetworkState.FAILED
+                networkState.postValue(NetworkState.FAILED)
+            }.also {
+                networkState.postValue(NetworkState.NOTWORK)
             }
-            networkState.postValue(state)
         }
     }
 

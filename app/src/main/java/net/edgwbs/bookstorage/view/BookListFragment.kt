@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
+import android.net.Network
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -29,12 +30,14 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import info.androidhive.fontawesome.FontDrawable
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
+import kotlinx.android.synthetic.main.app_bar_with_search.view.*
 import kotlinx.android.synthetic.main.nav_item.view.*
 import kotlinx.coroutines.Job
 
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
 import net.edgwbs.bookstorage.model.Book
+import net.edgwbs.bookstorage.model.NetworkState
 import net.edgwbs.bookstorage.model.ReadState
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookListViewModel
@@ -111,6 +114,8 @@ class BookListFragment : Fragment() {
         initTab(binding.bookListContent.tabLayout, context)
         initFab(binding.bookRegisterFab, context)
 
+        binding.bookListContent.searchBar.bookListSearchView.isSubmitButtonEnabled = true
+
         adapter = BookListAdapter(bookClickCallback)
         val rv = binding.root.findViewById<RecyclerView>(R.id.book_list)
         rv.setHasFixedSize(true)
@@ -148,6 +153,15 @@ class BookListFragment : Fragment() {
         viewModel.networkState.observe(
             viewLifecycleOwner,
             Observer { n ->
+                when(n) {
+                    NetworkState.RUNNING -> {
+                        binding.isLoading = true
+                    }
+                    NetworkState.NOTWORK -> {
+                        binding.isLoading = false
+                    }
+                    else -> binding.isLoading = false
+                }
                 Log.d("debug", "--------------"+n.name)
             }
         )

@@ -2,4 +2,6 @@
     <string name="app_name">BookStorage</string>
     <string name="navigation_drawer_open">Open</string>
     <string name="navigation_drawer_close">Close</string>
+    <string name="swipe_action_read">Mark as Read</string>
+    <string name="swipe_action_reading">Mark as Reading</string>
 </resources>

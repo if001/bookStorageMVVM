@@ -21,7 +21,6 @@
             <include
                 android:id="@+id/book_list_content"
                 layout="@layout/fragment_book_list_contents"
-                app:isLoading="@{isLoading}"
                 />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton

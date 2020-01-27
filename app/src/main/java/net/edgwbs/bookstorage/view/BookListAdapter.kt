@@ -16,6 +16,7 @@ import net.edgwbs.bookstorage.databinding.FragmentBookCardBinding
 import net.edgwbs.bookstorage.model.Book
 import net.edgwbs.bookstorage.utils.VIEW_TYPE_EMPTY_ITEM
 import net.edgwbs.bookstorage.utils.VIEW_TYPE_ITEM
+import net.edgwbs.bookstorage.utils.isCurrent
 
 
 class BookListAdapter(
