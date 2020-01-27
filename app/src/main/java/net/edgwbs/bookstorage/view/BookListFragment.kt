@@ -2,34 +2,24 @@ package net.edgwbs.bookstorage.view
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
 import android.widget.BaseAdapter
-import android.widget.LinearLayout
 import android.widget.ListView
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.widget.DrawableUtils
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.paging.PagedList
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -38,18 +28,15 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import info.androidhive.fontawesome.FontDrawable
-import kotlinx.android.synthetic.main.fragment_book_detail.*
+import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import kotlinx.android.synthetic.main.nav_item.view.*
 import kotlinx.coroutines.Job
 
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
 import net.edgwbs.bookstorage.model.Book
-import net.edgwbs.bookstorage.model.BookService
-import net.edgwbs.bookstorage.utils.FontAwesomeTextView
+import net.edgwbs.bookstorage.model.ReadState
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
-import net.edgwbs.bookstorage.utils.OnLoadMoreListener
-import net.edgwbs.bookstorage.utils.RecyclerViewLoadMoreScroll
 import net.edgwbs.bookstorage.viewModel.BookListViewModel
 import net.edgwbs.bookstorage.viewModel.RequestCallback
 
@@ -253,7 +240,6 @@ class BookListFragment : Fragment() {
                 }
                 adapter.notifyItemChanged(viewHolder.adapterPosition)
                 Log.d("tag:::::::::", direction.toString())
-
             }
 
             //スワイプした時の背景を設定
@@ -266,6 +252,72 @@ class BookListFragment : Fragment() {
                 actionState: Int,
                 isCurrentlyActive: Boolean
             ) {
+                val book = adapter.getItemByPosition(viewHolder.adapterPosition)
+                book?.let {
+                    var labelRes = -1
+                    var iconRes = -1
+                    var bgRes = -1
+                    when (it.readState) {
+                        ReadState.NotRead.value -> {
+                            labelRes = R.string.swipe_action_reading
+                            iconRes = R.string.fa_book_open_solid
+                            bgRes = R.color.colorPrimary
+                        }
+                        ReadState.Reading.value -> {
+                            labelRes = R.string.swipe_action_read
+                            iconRes = R.string.fa_check_solid
+                            bgRes = R.color.colorLightGreen
+                        }
+                        ReadState.Read.value -> {
+                            labelRes = R.string.swipe_action_reading
+                            iconRes = R.string.fa_book_open_solid
+                            bgRes = R.color.colorPrimary
+                        }
+                    }
+
+
+                    val textMargin = 40
+                    RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        .addSwipeRightBackgroundColor(ContextCompat.getColor(context!!, bgRes))
+                        .addSwipeRightLabel(getString(labelRes))
+                        .setSwipeRightLabelColor(Color.WHITE)
+                        .addSwipeLeftBackgroundColor(ContextCompat.getColor(context!!, bgRes))
+                        .addSwipeLeftLabel(getString(labelRes))
+                        .setSwipeLeftLabelColor(Color.WHITE)
+                        .setIconHorizontalMargin(1, textMargin)
+                        .create()
+                        .decorate()
+
+                    val itemView = viewHolder.itemView
+                    val icon = FontDrawable(context, iconRes, true, false)
+                    icon.textSize = 17.toFloat()
+                    val rightMargin = 90
+                    val topMargin = (itemView.height/2 - icon.intrinsicHeight/3)
+                    val bottomMargin = (itemView.height/2 + icon.intrinsicHeight)
+                    if (dX < -rightMargin) {
+                        icon.setTextColor(ContextCompat.getColor(context!!, android.R.color.white))
+                        icon.setBounds(
+                            itemView.right - rightMargin,
+                            itemView.top + topMargin,
+                            itemView.right,
+                            itemView.top + bottomMargin
+                        )
+                        icon.draw(c)
+                    }
+                    val leftMargin = 30
+                    if (dX > leftMargin) {
+                        icon.setTextColor(ContextCompat.getColor(context!!, android.R.color.white))
+                        icon.setBounds(
+                            itemView.left + leftMargin,
+                            itemView.top + topMargin,
+                            itemView.left,
+                            itemView.top + bottomMargin
+                        )
+                        icon.draw(c)
+                    }
+
+                }
+
                 super.onChildDraw(
                     c,
                     recyclerView,
@@ -275,32 +327,6 @@ class BookListFragment : Fragment() {
                     actionState,
                     isCurrentlyActive
                 )
-                val itemView = viewHolder.itemView
-
-                val background = ColorDrawable()
-                background.color = resources.getColor(R.color.colorPrimary)
-
-                val icon = FontDrawable(context, R.string.fa_paper_plane_solid, true, false)
-                icon.setTextColor(ContextCompat.getColor(context!!, android.R.color.black))
-                
-
-                if (dX < 0)
-                    background.setBounds(
-                        itemView.right + dX.toInt(),
-                        itemView.top,
-                        itemView.right,
-                        itemView.bottom
-                    )
-                else
-                    background.setBounds(
-                        itemView.left,
-                        itemView.top,
-                        itemView.left + dX.toInt(),
-                        itemView.bottom
-                    )
-                // swipedView.draw(c)
-                background.draw(c)
-                icon.draw(c)
             }
         })
 
