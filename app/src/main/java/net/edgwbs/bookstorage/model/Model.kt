@@ -12,7 +12,7 @@ data class PaginateBook (
     val total_count: Long // TODO camel case 対応できない？？？
 ){
     companion object {
-        private const val totalCount: Long = 5
+        private const val totalCount: Long = 20
         private val t = (0..totalCount).map{ Book.createMock(it.toLong(), "mock title$it", null) }
         fun mockBooks(page:Int, perPage:Int): PaginateBook {
             var start = (page-1)*perPage
@@ -68,6 +68,13 @@ enum class ReadState(val value: Int) {
     NotRead(1),
     Reading(2),
     Read(3)
+}
+fun getReadStateStr(readState: ReadState): String {
+    return when(readState) {
+        ReadState.NotRead -> "not_read"
+        ReadState.Reading -> "reading"
+        ReadState.Read -> "read"
+    }
 }
 
 data class Author(

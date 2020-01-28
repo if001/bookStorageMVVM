@@ -49,9 +49,6 @@ class BookListFragment : Fragment() {
     }
     private lateinit var binding: FragmentBookListMainBinding
     private lateinit var adapter: BookListAdapter
-    private lateinit var loadBookJob: Job
-    private var page: Int = 1
-    private var state: String? = null
 
     private val bookClickCallback = object: BookClickCallback {
         override fun onClick(book: Book) {
@@ -69,30 +66,30 @@ class BookListFragment : Fragment() {
         }
     }
 
-    private val loadBookListCallback = object : RequestCallback {
-        override fun onRequestSuccess() {
-            // Snackbar.make(binding.root , "request success", Snackbar.LENGTH_LONG).show()
-        }
-
-        override fun onRequestFail() {
-            Snackbar.make(binding.root , "request fail", Snackbar.LENGTH_LONG).show()
-        }
-
-        override fun onFail() {
-            val snackbar = Snackbar.make(binding.root , "fail", Snackbar.LENGTH_LONG)
-            snackbar.setAction("Reload", object : View.OnClickListener {
-                override fun onClick(v: View?) {
-                    Log.d("tag", "click")
-                }
-            })
-            snackbar.show()
-        }
-
-        override fun onFinal() {
-            Thread.sleep(2000)
-            binding.isLoading = false
-        }
-    }
+//    private val loadBookListCallback = object : RequestCallback {
+//        override fun onRequestSuccess() {
+//            // Snackbar.make(binding.root , "request success", Snackbar.LENGTH_LONG).show()
+//        }
+//
+//        override fun onRequestFail() {
+//            Snackbar.make(binding.root , "request fail", Snackbar.LENGTH_LONG).show()
+//        }
+//
+//        override fun onFail() {
+//            val snackbar = Snackbar.make(binding.root , "fail", Snackbar.LENGTH_LONG)
+//            snackbar.setAction("Reload", object : View.OnClickListener {
+//                override fun onClick(v: View?) {
+//                    Log.d("tag", "click")
+//                }
+//            })
+//            snackbar.show()
+//        }
+//
+//        override fun onFinal() {
+//            Thread.sleep(2000)
+//            binding.isLoading = false
+//        }
+//    }
 
     private val stateChangeCallback = object : RequestCallback {
         override fun onRequestSuccess() {}
@@ -193,16 +190,15 @@ class BookListFragment : Fragment() {
             override fun onTabUnselected(tab: TabLayout.Tab) {}
             override fun onTabReselected(tab: TabLayout.Tab) {}
             override fun onTabSelected(tab: TabLayout.Tab) {
-                loadBookJobCancel()
-
-                state = when (tab.text) {
-                    "未読" -> "not_read"
-                    "読中" -> "reading"
-                    "読了" -> "read"
+                val state = when (tab.text) {
+                    "未読" -> ReadState.NotRead
+                    "読中" -> ReadState.Reading
+                    "読了" -> ReadState.Read
                     else -> null
                 }
-                viewModel.clearCachedBook()
-                viewModel.loadBookList(page, state, loadBookListCallback)
+                viewModel.createDataSource(state)
+                viewModel.refreshData()
+                adapter.notifyDataSetChanged()
             }
         })
     }
@@ -214,7 +210,6 @@ class BookListFragment : Fragment() {
         fab.setImageDrawable(drawable)
 
         fab.setOnClickListener{
-            loadBookJobCancel()
             val fragment = BookRegisterFragment()
             val transaction = fragmentManager?.beginTransaction()
             transaction?.let {
@@ -227,10 +222,6 @@ class BookListFragment : Fragment() {
     }
 
     private fun loadBookJobCancel() {
-        if (::loadBookJob.isInitialized) {
-            loadBookJob.cancel()
-            Log.d("tag", "cancel!!!!")
-        }
     }
 
     private fun getSwipeToDismissTouchHelper(adapter: BookListAdapter) =
@@ -250,10 +241,9 @@ class BookListFragment : Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val book = adapter.getItemByPosition(viewHolder.adapterPosition)
                 book?.let {
-                    viewModel.changeState(it,stateChangeCallback)
+                    viewModel.changeState(it, stateChangeCallback)
+                    adapter.notifyItemChanged(viewHolder.adapterPosition)
                 }
-                adapter.notifyItemChanged(viewHolder.adapterPosition)
-                Log.d("tag:::::::::", direction.toString())
             }
 
             //スワイプした時の背景を設定

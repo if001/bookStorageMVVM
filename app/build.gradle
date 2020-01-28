@@ -76,6 +76,8 @@ dependencies {
 
     // fontawesome
     implementation 'info.androidhive:fontawesome:0.0.5'
-    
+
     implementation 'com.squareup.picasso:picasso:2.71828'
+
+    implementation 'it.xabaras.android:recyclerview-swipedecorator:1.2.2'
 }
