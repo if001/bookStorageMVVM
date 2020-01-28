@@ -62,6 +62,7 @@
                         app:solid_icon="true"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
+                        app:visibleGone="@{hideSearchBox}"
                         />
                 </androidx.constraintlayout.widget.ConstraintLayout>
                 <LinearLayout
@@ -81,6 +82,7 @@
                         android:layout_marginLeft="30dp"
                         android:layout_marginTop="10dp"
                         android:layout_marginRight="30dp"
+                        android:textSize="12sp"
                         android:hint="Title"
                         android:inputType="text"
                         android:text="@={title}" />
@@ -90,6 +92,7 @@
                         android:layout_height="40dp"
                         android:layout_marginLeft="30dp"
                         android:layout_marginRight="30dp"
+                        android:textSize="12sp"
                         android:hint="Author"
                         android:inputType="text"
                         android:text="@={author}" />
@@ -102,6 +105,7 @@
                         android:layout_marginTop="10dp"
                         android:layout_marginRight="60dp"
                         android:layout_marginBottom="10dp"
+                        android:textSize="12sp"
                         android:text="Search" />
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,7 +8,7 @@ import kotlinx.coroutines.*
 
  class BookServiceMock: BookService {
      override suspend fun findBook(id: Long): Response<BookResponse<Book>> {
-         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+         return Response.success(BookResponse(Book.createMock(id, "mock title", ReadState.Read)))
      }
 
      override suspend fun createBook(bookForm: BookForm): Response<BookResponse<Book>> {
