@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ListView
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -31,12 +32,14 @@ import com.google.android.material.tabs.TabLayout
 import info.androidhive.fontawesome.FontDrawable
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import kotlinx.android.synthetic.main.app_bar_with_search.view.*
+import kotlinx.android.synthetic.main.fragment_book_list_contents.view.*
 import kotlinx.android.synthetic.main.nav_item.view.*
 import kotlinx.coroutines.Job
 
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
 import net.edgwbs.bookstorage.model.Book
+import net.edgwbs.bookstorage.model.BookListQuery
 import net.edgwbs.bookstorage.model.NetworkState
 import net.edgwbs.bookstorage.model.ReadState
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
@@ -49,6 +52,7 @@ class BookListFragment : Fragment() {
     }
     private lateinit var binding: FragmentBookListMainBinding
     private lateinit var adapter: BookListAdapter
+    var bookListQuery: BookListQuery = BookListQuery(null, null)
 
     private val bookClickCallback = object: BookClickCallback {
         override fun onClick(book: Book) {
@@ -65,31 +69,6 @@ class BookListFragment : Fragment() {
             }
         }
     }
-
-//    private val loadBookListCallback = object : RequestCallback {
-//        override fun onRequestSuccess() {
-//            // Snackbar.make(binding.root , "request success", Snackbar.LENGTH_LONG).show()
-//        }
-//
-//        override fun onRequestFail() {
-//            Snackbar.make(binding.root , "request fail", Snackbar.LENGTH_LONG).show()
-//        }
-//
-//        override fun onFail() {
-//            val snackbar = Snackbar.make(binding.root , "fail", Snackbar.LENGTH_LONG)
-//            snackbar.setAction("Reload", object : View.OnClickListener {
-//                override fun onClick(v: View?) {
-//                    Log.d("tag", "click")
-//                }
-//            })
-//            snackbar.show()
-//        }
-//
-//        override fun onFinal() {
-//            Thread.sleep(2000)
-//            binding.isLoading = false
-//        }
-//    }
 
     private val stateChangeCallback = object : RequestCallback {
         override fun onRequestSuccess() {}
@@ -108,8 +87,9 @@ class BookListFragment : Fragment() {
         binding.isLoading = true
 
         val context = binding.root.context
-        initTab(binding.bookListContent.tabLayout, context)
+        initTab(binding.bookListContent.tabLayout)
         initFab(binding.bookRegisterFab, context)
+        initSearchBox()
 
         viewModel.createDataSource()
 
@@ -183,7 +163,7 @@ class BookListFragment : Fragment() {
         navView.adapter = MenuItemAdapter(view.context, burgerItems)
     }
 
-    private fun initTab(tabLayout: TabLayout, context: Context) {
+    private fun initTab(tabLayout: TabLayout) {
         tabLayout.addTab(tabLayout.newTab().setText("ALL"))
         tabLayout.addTab(tabLayout.newTab().setText("未読"))
         tabLayout.addTab(tabLayout.newTab().setText("読中"))
@@ -198,7 +178,8 @@ class BookListFragment : Fragment() {
                     "読了" -> ReadState.Read
                     else -> null
                 }
-                viewModel.changeQuery(state)
+                bookListQuery.state = state
+                viewModel.changeQuery(bookListQuery)
                 viewModel.refreshData()
             }
         })
@@ -219,6 +200,30 @@ class BookListFragment : Fragment() {
                 it.addToBackStack(null)
                 it.replace(R.id.fragment_container, fragment).commit()
             }
+        }
+    }
+
+    private fun initSearchBox() {
+        val searchView = binding.bookListContent.searchBar.bookListSearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                bookListQuery.book = query
+                viewModel.changeQuery(bookListQuery)
+                viewModel.refreshData()
+                return false
+            }
+        })
+        searchView.setOnCloseListener {
+            bookListQuery.book?.let {
+                bookListQuery.book = null
+                viewModel.changeQuery(bookListQuery)
+                viewModel.refreshData()
+            }
+            false
         }
     }
 
@@ -243,6 +248,7 @@ class BookListFragment : Fragment() {
                 val book = adapter.getItemByPosition(viewHolder.adapterPosition)
                 book?.let {
                     viewModel.changeState(it, stateChangeCallback)
+                    viewModel.refreshData()
                     adapter.notifyItemChanged(viewHolder.adapterPosition)
                 }
             }

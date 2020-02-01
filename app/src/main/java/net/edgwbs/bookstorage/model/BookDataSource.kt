@@ -10,8 +10,8 @@ import retrofit2.Response
 import kotlin.coroutines.CoroutineContext
 
 class BookDataSource(private val scope: CoroutineScope, private val perPage: Int,
-                     private val state: ReadState?,
-                     private val networkState: MutableLiveData<NetworkState>):
+                     private val networkState: MutableLiveData<NetworkState>,
+                     private val query: BookListQuery):
     PageKeyedDataSource<Int, Book>() {
 
     private val repository:BookRepository = BookRepository.instance
@@ -52,8 +52,7 @@ class BookDataSource(private val scope: CoroutineScope, private val perPage: Int
         scope.launch {
             kotlin.runCatching {
                 Log.d("tag", "launch!!!!!!!!!")
-                val stateQuery = state?.let { getReadStateStr(state) }
-                val request = repository.getBooks(page, perPage, stateQuery)
+                val request = repository.getBooks(page, perPage, query.getStateStr(), query.book)
                 if (request.isSuccessful) {
                     request.body()?.content?.let {
                         val hasMore = it.total_count > perPage * page
@@ -88,16 +87,16 @@ class BookDataSourceFactory(private val scope: CoroutineScope,
 
     val bookLiveDataSource = MutableLiveData<PageKeyedDataSource<Int, Book>>()
     var source: DataSource<Int, Book>? = null
-    var state: ReadState? = null
+    var query: BookListQuery = BookListQuery(null, null)
 
     override fun create(): DataSource<Int, Book> {
-        source = BookDataSource(scope, perPage, state, networkState)
+        source = BookDataSource(scope, perPage, networkState, query)
         bookLiveDataSource.postValue(source as? PageKeyedDataSource<Int, Book>)
         return source!!
     }
 
-    fun changeState(state: ReadState?) {
-        this.state = state
+    fun changeQuery(query: BookListQuery) {
+        this.query = query
     }
 }
 
@@ -107,4 +106,15 @@ enum class NetworkState {
     RUNNING,
     SUCCESS,
     FAILED
+}
+
+
+// todo valにする
+class BookListQuery(
+    var state: ReadState?,
+    var book: String?
+) {
+    fun getStateStr(): String? {
+        return this.state?.let { getReadStateStr(it) }
+    }
 }

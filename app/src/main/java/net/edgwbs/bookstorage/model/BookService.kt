@@ -8,7 +8,8 @@ interface BookService {
     suspend fun getBooks(
         @Query("page") page: Int,
         @Query("per_page") perPage: Int,
-        @Query("status") status: String?
+        @Query("status") status: String?,
+        @Query("book") book: String?
     ): Response<BookResponse<PaginateBook>>
 
     @GET("book/{id}")

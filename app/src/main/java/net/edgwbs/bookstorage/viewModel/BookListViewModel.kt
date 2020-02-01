@@ -3,6 +3,7 @@ package net.edgwbs.bookstorage.viewModel
 import android.app.Application
 import android.app.SharedElementCallback
 import android.util.Log
+import android.util.LogPrinter
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -53,8 +54,8 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
         bookDataSourceFactory.bookLiveDataSource.value?.invalidate()
     }
 
-    fun changeQuery(state: ReadState?) {
-        bookDataSourceFactory.changeState(state)
+    fun changeQuery(query: BookListQuery) {
+        bookDataSourceFactory.changeQuery(query)
     }
 
     fun cancelJob() {

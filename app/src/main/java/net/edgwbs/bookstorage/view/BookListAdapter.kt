@@ -57,7 +57,6 @@ class BookListAdapter(
 
     fun getItemByPosition(position: Int): Book? {
         return getItem(position)
-
     }
 
     companion object {

@@ -46,7 +46,8 @@ import kotlinx.coroutines.*
      override suspend fun getBooks(
          page: Int,
          perPage: Int,
-         status: String?
+         status: String?,
+         book: String?
      ): Response<BookResponse<PaginateBook>> {
          return Response.success(BookResponse(PaginateBook.mockBooks(page, perPage)))
      }
