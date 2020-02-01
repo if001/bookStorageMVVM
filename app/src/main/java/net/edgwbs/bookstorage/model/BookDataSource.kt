@@ -4,22 +4,24 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.DataSource
 import androidx.paging.PageKeyedDataSource
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.edgwbs.bookstorage.viewModel.RequestCallback
 import retrofit2.Response
+import kotlin.coroutines.CoroutineContext
 
-class BookDataSource(private val scope: CoroutineScope, private val perPage: Int) : PageKeyedDataSource<Int, Book>() {
+class BookDataSource(private val scope: CoroutineScope, private val perPage: Int,
+                     private val state: ReadState?,
+                     private val networkState: MutableLiveData<NetworkState>):
+    PageKeyedDataSource<Int, Book>() {
+
     private val repository:BookRepository = BookRepository.instance
     private val firstPage = 1
-    private val networkState = MutableLiveData<NetworkState>()
-    // private val stateQuery: String? = state?.let { getReadStateStr(it) }
 
     override fun loadInitial(
         params: LoadInitialParams<Int>,
         callback: LoadInitialCallback<Int, Book>) {
         callAPI(firstPage, perPage) { books, hasMore ->
+            Log.d("tag", "init!!!!!!!!!")
             val key = if (hasMore) 1 else null
             val bookWithEmpty = mutableListOf(Book.forEmpty())
             bookWithEmpty.addAll(books)
@@ -45,21 +47,13 @@ class BookDataSource(private val scope: CoroutineScope, private val perPage: Int
         }
     }
 
-    override fun invalidate() {
-        super.invalidate()
-        scope.cancel()
-    }
-
-    fun refreshData() {
-        super.invalidate()
-    }
-
     private fun callAPI(page: Int, perPage: Int, callback: (books: List<Book>, hasMore: Boolean) -> Unit) {
         networkState.postValue(NetworkState.RUNNING)
-
         scope.launch {
             kotlin.runCatching {
-                val request = repository.getBooks(page, perPage, null)
+                Log.d("tag", "launch!!!!!!!!!")
+                val stateQuery = state?.let { getReadStateStr(state) }
+                val request = repository.getBooks(page, perPage, stateQuery)
                 if (request.isSuccessful) {
                     request.body()?.content?.let {
                         val hasMore = it.total_count > perPage * page
@@ -70,33 +64,40 @@ class BookDataSource(private val scope: CoroutineScope, private val perPage: Int
                     NetworkState.FAILED
                 }
             }.onSuccess { state ->
+                Log.d("tag", "success!!!!!!!!!!1")
                 networkState.postValue(state)
             }.onFailure {
+                Log.d("tag", it.toString())
+                Log.d("tag", "fail!!!!!!!!")
                 networkState.postValue(NetworkState.FAILED)
             }.also {
+                Log.d("tag", "also!!!!!!!!!")
                 networkState.postValue(NetworkState.NOTWORK)
             }
         }
     }
 
-    fun getNetworkState(): MutableLiveData<NetworkState> {
-        return networkState
-    }
-
-    fun removeData(data: Book) {
-
-    }
 }
 
 
-class BookDataSourceFactory(private val scope: CoroutineScope, private val perPage: Int) : DataSource.Factory<Int, Book>() {
+class BookDataSourceFactory(private val scope: CoroutineScope,
+                            private val perPage: Int,
+                            private val networkState: MutableLiveData<NetworkState>)
+    :DataSource.Factory<Int, Book>() {
+
+
     val bookLiveDataSource = MutableLiveData<PageKeyedDataSource<Int, Book>>()
-    val source = BookDataSource(scope, perPage)
+    var source: DataSource<Int, Book>? = null
+    var state: ReadState? = null
 
     override fun create(): DataSource<Int, Book> {
-        Log.d("eee","factory!!!!!!!!!!!")
-        bookLiveDataSource.postValue(source)
-        return source
+        source = BookDataSource(scope, perPage, state, networkState)
+        bookLiveDataSource.postValue(source as? PageKeyedDataSource<Int, Book>)
+        return source!!
+    }
+
+    fun changeState(state: ReadState?) {
+        this.state = state
     }
 }
 

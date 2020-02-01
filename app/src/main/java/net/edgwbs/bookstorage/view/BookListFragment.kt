@@ -111,6 +111,8 @@ class BookListFragment : Fragment() {
         initTab(binding.bookListContent.tabLayout, context)
         initFab(binding.bookRegisterFab, context)
 
+        viewModel.createDataSource()
+
         binding.bookListContent.searchBar.bookListSearchView.isSubmitButtonEnabled = true
 
         adapter = BookListAdapter(bookClickCallback)
@@ -196,9 +198,8 @@ class BookListFragment : Fragment() {
                     "読了" -> ReadState.Read
                     else -> null
                 }
-                viewModel.createDataSource(state)
+                viewModel.changeQuery(state)
                 viewModel.refreshData()
-                adapter.notifyDataSetChanged()
             }
         })
     }

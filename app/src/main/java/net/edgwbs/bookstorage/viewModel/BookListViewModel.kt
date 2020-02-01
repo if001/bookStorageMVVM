@@ -28,23 +28,18 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
 
     private lateinit var bookPagedList: LiveData<PagedList<Book>>
     private var bookLiveDataSource: MutableLiveData<PageKeyedDataSource<Int, Book>>? = null
-    lateinit var networkState: LiveData<NetworkState>
+    val networkState = MutableLiveData<NetworkState>()
     private lateinit var bookDataSourceFactory: BookDataSourceFactory
-    private var pagedListConfig: PagedList.Config
-    init {
-        pagedListConfig = PagedList.Config.Builder()
+    private var state: ReadState? = null
+
+    fun createDataSource() {
+        val pagedListConfig = PagedList.Config.Builder()
             .setPageSize(perPage)
             .setInitialLoadSizeHint(perPage)
             .build()
-        createDataSource( null, true)
-    }
-
-    fun createDataSource(state: ReadState?, firstLoad: Boolean = false) {
-        bookDataSourceFactory = BookDataSourceFactory(viewModelScope, perPage)
-
+        bookDataSourceFactory = BookDataSourceFactory(viewModelScope, perPage, networkState)
         bookLiveDataSource = bookDataSourceFactory.bookLiveDataSource
 
-        networkState = bookDataSourceFactory.source.getNetworkState()
         bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig).build()
     }
 
@@ -54,46 +49,15 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
         return BookModelCommon.changeState(book, viewModelScope, repository, requestCallback)
     }
 
-    fun loadBookJobCancel() {
-        bookDataSourceFactory.source.invalidate()
-    }
-
     fun refreshData() {
-        bookDataSourceFactory.source.refreshData()
+        bookDataSourceFactory.bookLiveDataSource.value?.invalidate()
     }
 
-//    fun clearCachedBook() {
-//        cachedBookList = mutableListOf()
-//    }
-//
-//
-//    fun loadBookList(page: Int, state: String?, requestCallback: RequestCallback): Job {
-//        return viewModelScope.launch {
-//            kotlin.runCatching {
-//                val request = repository.getBooks(page, perPage, state)
-//                Log.d("uuuuuuuuuuu", request.toString())
-//                if (request.isSuccessful) {
-//                    request.body()?.content?.let {
-//                        cachedBookList.addAll(it.books)
-//                        bookListLiveData.postValue(cachedBookList.toList())
-//                    }
-//                    null
-//                } else{
-//                    request.errorBody()
-//                }
-//            }.onSuccess {
-//                if (it == null){
-//                    requestCallback.onRequestSuccess()
-//                } else {
-//                    Log.d("error", "loadBookList: request fail:$it")
-//                    requestCallback.onRequestFail()
-//                }
-//            }.onFailure {
-//                Log.d("exception", "loadBookList: fail:$it")
-//                requestCallback.onFail()
-//            }.also {
-//                requestCallback.onFinal()
-//            }
-//        }
-//    }
+    fun changeQuery(state: ReadState?) {
+        bookDataSourceFactory.changeState(state)
+    }
+
+    fun cancelJob() {
+        viewModelScope.cancel()
+    }
 }
