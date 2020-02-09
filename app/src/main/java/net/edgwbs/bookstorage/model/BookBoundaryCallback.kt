@@ -3,6 +3,7 @@ package net.edgwbs.bookstorage.model
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.PagedList
+import arrow.core.Failure
 import io.reactivex.Completable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CoroutineScope
@@ -12,15 +13,23 @@ import net.edgwbs.bookstorage.model.db.AuthorSchema
 import net.edgwbs.bookstorage.model.db.BookSchema
 import net.edgwbs.bookstorage.model.db.BooksDB
 import net.edgwbs.bookstorage.model.db.PublisherSchema
+import net.edgwbs.bookstorage.utils.*
 import retrofit2.Response
+import java.lang.Exception
 
 class BookBoundaryCallback(
     private val scope: CoroutineScope,
     private val booksDB: BooksDB,
     private val networkState: MutableLiveData<NetworkState>,
-    private val perPage: Int
+    private val perPage: Int,
+    private val errorFeedbackHandler: MutableLiveData<ErrorFeedback>
 ): PagedList.BoundaryCallback<Book>() {
     private val repository:BookRepository = BookRepository.instance
+    private val authorsDB = booksDB.authorsDao()
+    private val publishersDB = booksDB.publishersDao()
+
+    var nexPage = 1
+    var totalCount = 0
 
     override fun onZeroItemsLoaded() {
         Log.d("tag", "onZeroItemsLoaded")
@@ -30,13 +39,23 @@ class BookBoundaryCallback(
             callApiAsync(1, perPage, query)
                 .await()
                 .onSuccess {
-                    Completable.fromAction {
-                        insertAuthorPublisher(it)
-                        insertBook(it)
+                    kotlin.runCatching {
+                        booksDB.runInTransaction {
+                            Completable.fromAction {
+                                insertAuthorPublisher(it)
+                                insertBook(it)
+                                totalCount = booksDB.booksDao().count()
+                            }
+                                .subscribeOn(Schedulers.io())
+                                .subscribe()
+                        }
+                    }.onSuccess {
+                        nexPage += 1
+                    }.onFailure {
+                        errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback(it.toString()))
                     }
-                        .subscribeOn(Schedulers.io())
-                        .subscribe()
                 }
+
         }
     }
 
@@ -45,51 +64,55 @@ class BookBoundaryCallback(
         // DBに2ページ以降のデータが無いとき
         // 引数に前回取得したデータの最後のものが渡される
         val query = BookListQuery(null, null)
+
+        // 以下の条件ではAPIを呼ばないように早期リターン
+        if (totalCount < (nexPage -1) * perPage)
+            return
+        if (totalCount > perPage)
+            return
+
         scope.launch {
-            callApiAsync(2, perPage, query)
+            callApiAsync(nexPage, perPage, query)
                 .await()
                 .onSuccess {
-                    Completable.fromAction {
-                        insertAuthorPublisher(it)
-                        insertBook(it)
+                    kotlin.runCatching {
+                        Completable.fromAction {
+                            insertAuthorPublisher(it)
+                            insertBook(it)
+                        }
+                            .subscribeOn(Schedulers.io())
+                            .subscribe()
+                    }.onSuccess {
+                        nexPage += 1
+                    }.onFailure {
+                        errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback(it.toString()))
                     }
-                        .subscribeOn(Schedulers.io())
-                        .subscribe()
                 }
         }
     }
 
-    private fun insertAuthorPublisher(response: Response<BookResponse<PaginateBook>>) {
-        val authorsDB = booksDB.authorsDao()
-        val publishersDB = booksDB.publishersDao()
-        kotlin.runCatching {
-            booksDB.runInTransaction {
-                response.body()?.let {
-                    it.content.books.forEach { book ->
-                        book.author?.let { ele ->
-                            authorsDB.find(ele.id) ?: {
-                                val new = AuthorSchema(ele.id, ele.name)
-                                authorsDB.insert(listOf(new))
-                            }()
-                        }
-                        book.publisher?.let { ele ->
-                            publishersDB.find(ele.id) ?: {
-                                val new = PublisherSchema(ele.id, ele.name)
-                                publishersDB.insert(listOf(new))
-                            }()
-                        }
-                    }
+    private fun insertAuthorPublisher(response: BookResponse<PaginateBook>?) {
+        response?.let {
+            it.content.books.forEach { book ->
+                book.author?.let { ele ->
+                    authorsDB.find(ele.id) ?: {
+                        val new = AuthorSchema(ele.id, ele.name)
+                        authorsDB.insert(listOf(new))
+                    }()
+                }
+                book.publisher?.let { ele ->
+                    publishersDB.find(ele.id) ?: {
+                        val new = PublisherSchema(ele.id, ele.name)
+                        publishersDB.insert(listOf(new))
+                    }()
                 }
             }
-        }.onFailure {
-
-        }.also {
-
         }
     }
 
-    private fun insertBook(response: Response<BookResponse<PaginateBook>>) {
-        response.body()?.also {
+
+    private fun insertBook(response: BookResponse<PaginateBook>?) {
+        response?.let {
             val b = it.content.books.map{ book ->
                 BookSchema(
                     book.id,
@@ -110,7 +133,7 @@ class BookBoundaryCallback(
             }
             booksDB.booksDao().insert(b)
         }
-}
+    }
 
 //    fun clear() {
 //        disposable.clear()
@@ -120,18 +143,24 @@ class BookBoundaryCallback(
     private suspend fun callApiAsync(page: Int, perPage:Int, query: BookListQuery) = scope.async {
         kotlin.runCatching {
             networkState.postValue(NetworkState.RUNNING)
-            repository.getBooks(page, perPage, query.getStateStr(), query.book)
-        }
-            .onSuccess {
+            val response = repository.getBooks(page, perPage, query.getStateStr(), query.book)
+            if (response.isSuccessful) {
                 networkState.postValue(NetworkState.SUCCESS)
+                response.body()
+            } else {
+                throw BadRequestException(response.errorBody()?.toString())
             }
-            .onFailure {
-                Log.d("tag", it.toString())
-                Log.d("tag", "fail!!!!!!!!")
-                networkState.postValue(NetworkState.FAILED)
-            }.also {
-                Log.d("tag", "also!!!!!!!!!")
-                networkState.postValue(NetworkState.NOTWORK)
+        }.onFailure {
+            Log.d("tag", it.toString())
+            when(it) {
+                ApiNotReachException() ->
+                    errorFeedbackHandler.postValue(ErrorFeedback.ApiNotReachErrorFeedback(it.toString()))
+                else ->
+                    errorFeedbackHandler.postValue(ErrorFeedback.ApiErrorFeedback(it.toString(), 500))
             }
+            networkState.postValue(NetworkState.FAILED)
+        }.also {
+            networkState.postValue(NetworkState.NOTWORK)
+        }
     }
 }

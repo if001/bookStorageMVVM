@@ -20,6 +20,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -48,6 +49,7 @@ import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
 import net.edgwbs.bookstorage.model.*
 import net.edgwbs.bookstorage.model.db.BooksDB
 import net.edgwbs.bookstorage.model.Book
+import net.edgwbs.bookstorage.utils.ErrorFeedback
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookListViewModel
 import net.edgwbs.bookstorage.viewModel.RequestCallback
@@ -61,6 +63,7 @@ class BookListFragment : Fragment() {
     var bookListQuery: BookListQuery = BookListQuery(null, null)
     private val DBNAME = "books_test"
     private lateinit var booksDB: BooksDB
+    private val errorFeedbackHandler = MutableLiveData<ErrorFeedback>()
 
     private val bookClickCallback = object: BookClickCallback {
         override fun onClick(book: Book) {
@@ -128,7 +131,7 @@ class BookListFragment : Fragment() {
 
         booksDB = Room.databaseBuilder(context, BooksDB::class.java, DBNAME).build()
 
-        viewModel.createDataSource(booksDB)
+        viewModel.createDataSource(booksDB, errorFeedbackHandler)
 
         binding.bookListContent.searchBar.bookListSearchView.isSubmitButtonEnabled = true
 
@@ -180,6 +183,13 @@ class BookListFragment : Fragment() {
                     else -> binding.isLoading = false
                 }
                 Log.d("debug", "--------------"+n.name)
+            }
+        )
+
+        errorFeedbackHandler.observe(
+            viewLifecycleOwner,
+            Observer { n ->
+                Log.d("tag", n.getMessage(context).toString())
             }
         )
     }

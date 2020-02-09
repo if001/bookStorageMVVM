@@ -20,39 +20,38 @@ import net.edgwbs.bookstorage.model.*
 import net.edgwbs.bookstorage.model.db.BookSchema
 import net.edgwbs.bookstorage.model.db.BooksDB
 import net.edgwbs.bookstorage.model.db.BooksDao
+import net.edgwbs.bookstorage.utils.ErrorFeedback
 import java.lang.Error
 import java.lang.Exception
 import kotlin.concurrent.thread
 
 class BookListViewModel(application: Application): AndroidViewModel(application) {
     private val repository:BookRepository = BookRepository.instance
-
     private val perPage: Int = 5
-
-    var page: Int = 1
+    // var page: Int = 1
 
     private lateinit var bookPagedList: LiveData<PagedList<Book>>
     // private var bookLiveDataSource: MutableLiveData<PageKeyedDataSource<Int, Book>>? = null
     val networkState = MutableLiveData<NetworkState>()
     private lateinit var bookDataSourceFactory: BookDataSourceFactory
 
-    fun createDataSource(booksDB: BooksDB) {
+    fun createDataSource(booksDB: BooksDB, errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
         val pagedListConfig = PagedList.Config.Builder()
             .setPageSize(perPage)
             .setInitialLoadSizeHint(perPage)
             .build()
 
-        bookDataSourceFactory = BookDataSourceFactory(booksDB)
-        val bookBoundaryCallback = BookBoundaryCallback(viewModelScope, booksDB, networkState, perPage)
-        bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig)
-            .setBoundaryCallback(bookBoundaryCallback)
-            .build()
-
-//        bookDataSourceFactory = BookDataSourceFactory(booksDB, viewModelScope, perPage)
-//        val bookBoundaryCallback = BookBoundaryCallback(viewModelScope, booksDB, networkState, perPage)
+//        bookDataSourceFactory = BookDataSourceFactory(booksDB)
+//        val bookBoundaryCallback = BookBoundaryCallback(viewModelScope, booksDB, networkState, perPage, errorFeedbackHandler)
 //        bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig)
 //            .setBoundaryCallback(bookBoundaryCallback)
 //            .build()
+
+        bookDataSourceFactory = BookDataSourceFactory(booksDB)
+        val bookBoundaryCallback = BookBoundaryCallback(viewModelScope, booksDB, networkState, perPage, errorFeedbackHandler)
+        bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig)
+            .setBoundaryCallback(bookBoundaryCallback)
+            .build()
     }
 
     fun getLiveData(): LiveData<PagedList<Book>> = bookPagedList
