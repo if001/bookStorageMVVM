@@ -8,6 +8,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.edgwbs.bookstorage.model.Book
 import net.edgwbs.bookstorage.model.BookRepository
+import net.edgwbs.bookstorage.model.HandelError
 
 class BookViewModel(application: Application): AndroidViewModel(application) {
     private val repository: BookRepository = BookRepository.instance
@@ -24,19 +25,13 @@ class BookViewModel(application: Application): AndroidViewModel(application) {
                     response.body()?.let {
                         bookLiveData.postValue(it.content)
                     }
-                    null
+                    requestCallback.onRequestSuccess(response.body())
                 } else {
-                    response.errorBody()
+                    // response.errorBody()
+                    requestCallback.onFail(HandelError.apiError)
                 }
             }
             result
-                .onSuccess {
-                    if (it == null) {
-                        requestCallback.onRequestSuccess()
-                    } else {
-                        requestCallback.onRequestFail()
-                    }
-                }
                 .onFailure {
                     requestCallback.onRequestFail()
                 }

@@ -11,11 +11,15 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PageKeyedDataSource
 import androidx.paging.PagedList
+import androidx.room.Room
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.edgwbs.bookstorage.model.*
+import net.edgwbs.bookstorage.model.db.BookSchema
+import net.edgwbs.bookstorage.model.db.BooksDB
+import net.edgwbs.bookstorage.model.db.BooksDao
 import java.lang.Error
 import java.lang.Exception
 import kotlin.concurrent.thread
@@ -23,25 +27,32 @@ import kotlin.concurrent.thread
 class BookListViewModel(application: Application): AndroidViewModel(application) {
     private val repository:BookRepository = BookRepository.instance
 
-    private val perPage: Int = 30
+    private val perPage: Int = 5
 
     var page: Int = 1
 
     private lateinit var bookPagedList: LiveData<PagedList<Book>>
-    private var bookLiveDataSource: MutableLiveData<PageKeyedDataSource<Int, Book>>? = null
+    // private var bookLiveDataSource: MutableLiveData<PageKeyedDataSource<Int, Book>>? = null
     val networkState = MutableLiveData<NetworkState>()
     private lateinit var bookDataSourceFactory: BookDataSourceFactory
-    private var state: ReadState? = null
 
-    fun createDataSource() {
+    fun createDataSource(booksDB: BooksDB) {
         val pagedListConfig = PagedList.Config.Builder()
             .setPageSize(perPage)
             .setInitialLoadSizeHint(perPage)
             .build()
-        bookDataSourceFactory = BookDataSourceFactory(viewModelScope, perPage, networkState)
-        bookLiveDataSource = bookDataSourceFactory.bookLiveDataSource
 
-        bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig).build()
+        bookDataSourceFactory = BookDataSourceFactory(booksDB)
+        val bookBoundaryCallback = BookBoundaryCallback(viewModelScope, booksDB, networkState, perPage)
+        bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig)
+            .setBoundaryCallback(bookBoundaryCallback)
+            .build()
+
+//        bookDataSourceFactory = BookDataSourceFactory(booksDB, viewModelScope, perPage)
+//        val bookBoundaryCallback = BookBoundaryCallback(viewModelScope, booksDB, networkState, perPage)
+//        bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig)
+//            .setBoundaryCallback(bookBoundaryCallback)
+//            .build()
     }
 
     fun getLiveData(): LiveData<PagedList<Book>> = bookPagedList
@@ -51,7 +62,7 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
     }
 
     fun refreshData() {
-        bookDataSourceFactory.bookLiveDataSource.value?.invalidate()
+        bookDataSourceFactory.source?.invalidate()
     }
 
     fun changeQuery(query: BookListQuery) {

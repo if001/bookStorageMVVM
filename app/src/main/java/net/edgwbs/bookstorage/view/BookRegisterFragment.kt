@@ -22,7 +22,8 @@ import net.edgwbs.bookstorage.databinding.FragmentBookRegisterBinding
 import net.edgwbs.bookstorage.viewModel.RequestCallback
 import net.edgwbs.bookstorage.viewModel.SearchResultBookListViewModel
 import kotlinx.coroutines.*
-
+import net.edgwbs.bookstorage.model.BookResponse
+import net.edgwbs.bookstorage.model.HandelError
 
 
 class BookRegisterFragment : Fragment() {
@@ -35,9 +36,9 @@ class BookRegisterFragment : Fragment() {
     private var state: String? = null
 
     private val loadRequestCallback: RequestCallback = object : RequestCallback {
-        override fun onRequestSuccess() {}
+        override fun <T> onRequestSuccess(r: T?) {}
+        override fun onFail(e: HandelError) {}
         override fun onRequestFail() {}
-        override fun onFail() {}
         override fun onFinal() {
             Thread.sleep(4000)
             closeSearchBox()
@@ -45,7 +46,7 @@ class BookRegisterFragment : Fragment() {
         }
     }
     private val registerRequestCallback: RequestCallback = object : RequestCallback {
-        override fun onRequestSuccess() {
+        override fun <T> onRequestSuccess(r: T?) {
             val fragment = BookListFragment()
             val transaction = fragmentManager?.beginTransaction()
             transaction?.let {
@@ -57,7 +58,7 @@ class BookRegisterFragment : Fragment() {
         override fun onRequestFail() {
             Snackbar.make(binding.root , "request fail", Snackbar.LENGTH_LONG).show()
         }
-        override fun onFail() {
+        override fun onFail(e: HandelError) {
             Snackbar.make(binding.root , "fail", Snackbar.LENGTH_LONG).show()
         }
         override fun onFinal() {

@@ -50,22 +50,15 @@ class SearchResultBookListViewModel(application: Application): AndroidViewModel(
                         cachedResultList.add(x.Item)
                     }
                     searchResultsLiveData.postValue(cachedResultList)
-                    null
+                    requestCallback.onRequestSuccess(response.body())
                 } else {
                     response.errorBody()
                 }
             }
             result
-                .onSuccess {
-                    if( it == null){
-                        requestCallback.onRequestSuccess()
-                    } else {
-                        requestCallback.onRequestFail()
-                    }
-                }
                 .onFailure {
                     Log.d("exception:", "load rakuten books fail:$it")
-                    requestCallback.onFail()
+                    requestCallback.onFail(HandelError.apiError) // todo
                 }.also {
                     requestCallback.onFinal()
                 }
@@ -102,14 +95,14 @@ class SearchResultBookListViewModel(application: Application): AndroidViewModel(
             result
                 .onSuccess {
                     if(it.isEmpty()){
-                        requestCallback.onRequestSuccess()
+                        requestCallback.onRequestSuccess(it)
                     } else {
                         requestCallback.onRequestFail()
                     }
                 }
                 .onFailure {
                     Log.d("exception:", "register books fail:$it")
-                    requestCallback.onFail()
+                    requestCallback.onFail(HandelError.apiError)
                 }
                 .also {
                     requestCallback.onFinal()

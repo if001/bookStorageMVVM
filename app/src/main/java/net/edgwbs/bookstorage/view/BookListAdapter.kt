@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import androidx.core.view.marginTop
 
 import androidx.recyclerview.widget.RecyclerView
 import androidx.databinding.DataBindingUtil
@@ -34,6 +36,7 @@ class BookListAdapter(
             BookViewHolder(binding)
         } else {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.fragment_book_card_empty, parent, false)
+            Log.d("tag", "empty!!!!!!!!!!!!!!!!!!!!!!")
             EmptyViewHolder(view)
         }
     }

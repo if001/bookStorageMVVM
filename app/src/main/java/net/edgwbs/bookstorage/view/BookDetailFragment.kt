@@ -12,9 +12,12 @@ import androidx.lifecycle.ViewModelProviders
 import kotlinx.coroutines.Job
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookDetailBinding
+import net.edgwbs.bookstorage.model.BookResponse
+import net.edgwbs.bookstorage.model.HandelError
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookViewModel
 import net.edgwbs.bookstorage.viewModel.RequestCallback
+import org.xml.sax.ErrorHandler
 
 class BookDetailFragment : Fragment() {
     private val viewModel: BookViewModel by lazy {
@@ -25,14 +28,14 @@ class BookDetailFragment : Fragment() {
     private var bookIDLong: Long? = null
 
     private val loadBookCallback = object: RequestCallback {
-        override fun onRequestSuccess() {
+        override fun <Book>onRequestSuccess(r: Book?) {
         }
 
         override fun onRequestFail() {
             toPrevPage()
         }
 
-        override fun onFail() {
+        override fun onFail(e: HandelError) {
             toPrevPage()
         }
 
@@ -42,14 +45,14 @@ class BookDetailFragment : Fragment() {
     }
 
     private val changeStateCallback = object: RequestCallback {
-        override fun onRequestSuccess() {
+        override fun <Book> onRequestSuccess(r: Book?) {
         }
 
         override fun onRequestFail() {
             // toPrevPage()
         }
 
-        override fun onFail() {
+        override fun onFail(e: HandelError) {
             // toPrevPage()
         }
 

@@ -1,11 +1,19 @@
 package net.edgwbs.bookstorage.model
 
 import android.util.Log
+import net.edgwbs.bookstorage.model.db.BookSchema
 import java.util.*
 
 data class BookResponse<T> (
     val content: T
 )
+
+// todo replace
+sealed class HandelError {
+    object sqLiteError: HandelError()
+    object dbError: HandelError()
+    object apiError : HandelError()
+}
 
 data class PaginateBook (
     val books: List<Book>,
@@ -44,7 +52,9 @@ data class Book(
     val readState: Int,
     val startAt: Date?,
     val endAt: Date?,
-    val AffiliateUrl: String?
+    val AffiliateUrl: String?,
+    val createdAt: Date,
+    val updatedAt: Date
 ){
     fun getInfo(): String {
         val authorName = this.author?.name ?: "not set"
@@ -52,14 +62,33 @@ data class Book(
         return "%s (%s)".format(authorName, publisherName)
     }
 
+    fun toSchema(): BookSchema {
+        return BookSchema(
+            this.id,
+            this.accountId,
+            this.title,
+            this.author?.id,
+            this.publisher?.id,
+            this.isbn,
+            this.smallImageUrl,
+            this.mediumImageUrl,
+            this.readState,
+            this.startAt,
+            this.endAt,
+            this.AffiliateUrl,
+            this.createdAt,
+            this.updatedAt
+        )
+    }
+
     companion object {
         fun forEmpty(): Book {
-            return Book(-2, "", "", null, null, null,null,null,1,null,null,null)
+            return Book(-2, "", "", null, null, null,null,null,1,null,null,null, Date(), Date())
         }
 
         fun createMock(id: Long, title: String, state: ReadState?): Book {
             val s = state?.value ?: ReadState.NotRead.value
-            return Book(id, "", title, null, null, null,null,null, s,null,null,null)
+            return Book(id, "", title, null, null, null,null,null, s,null,null,null, Date(), Date())
         }
     }
 }

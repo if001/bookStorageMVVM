@@ -26,10 +26,17 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
+import arrow.core.Either
+import arrow.core.invalid
+import arrow.core.left
+import arrow.core.right
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import info.androidhive.fontawesome.FontDrawable
+import io.reactivex.Completable
+import io.reactivex.schedulers.Schedulers
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import kotlinx.android.synthetic.main.app_bar_with_search.view.*
 import kotlinx.android.synthetic.main.fragment_book_list_contents.view.*
@@ -38,10 +45,9 @@ import kotlinx.coroutines.Job
 
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
+import net.edgwbs.bookstorage.model.*
+import net.edgwbs.bookstorage.model.db.BooksDB
 import net.edgwbs.bookstorage.model.Book
-import net.edgwbs.bookstorage.model.BookListQuery
-import net.edgwbs.bookstorage.model.NetworkState
-import net.edgwbs.bookstorage.model.ReadState
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookListViewModel
 import net.edgwbs.bookstorage.viewModel.RequestCallback
@@ -53,6 +59,8 @@ class BookListFragment : Fragment() {
     private lateinit var binding: FragmentBookListMainBinding
     private lateinit var adapter: BookListAdapter
     var bookListQuery: BookListQuery = BookListQuery(null, null)
+    private val DBNAME = "books_test"
+    private lateinit var booksDB: BooksDB
 
     private val bookClickCallback = object: BookClickCallback {
         override fun onClick(book: Book) {
@@ -71,10 +79,37 @@ class BookListFragment : Fragment() {
     }
 
     private val stateChangeCallback = object : RequestCallback {
-        override fun onRequestSuccess() {}
-        override fun onRequestFail() {}
-        override fun onFail() {}
-        override fun onFinal() {}
+        // todo callbackではUIへのエラー表示だけを扱うようにする
+        override fun <Book>onRequestSuccess(r: Book?) {
+            Log.d("tag", "onRequestSuccess")
+            r?.let{ it ->
+                val book = it as net.edgwbs.bookstorage.model.Book
+                Log.d("tag", "state update!!!")
+                Log.d("tag", book.toString())
+                Completable.fromAction {
+                    kotlin.runCatching {
+                        // todo apiとまとめる
+                        booksDB.booksDao().update(book.toSchema())
+                    }.onSuccess {
+                        Log.d("tag", "success!!!")
+                    }.onFailure {
+                        Log.d("tag", "fail")
+                        Log.d("tag", it.toString())
+                    }
+                }
+                    .subscribeOn(Schedulers.io())
+                    .subscribe()
+            }
+        }
+        override fun onRequestFail() {
+            Log.d("tag", "state fail")
+        }
+        override fun onFail(e: HandelError) {
+            Log.d("tag", "state fail")
+        }
+        override fun onFinal() {
+            Log.d("tag", "state final")
+        }
     }
 
     override fun onCreateView(
@@ -91,11 +126,14 @@ class BookListFragment : Fragment() {
         initFab(binding.bookRegisterFab, context)
         initSearchBox()
 
-        viewModel.createDataSource()
+        booksDB = Room.databaseBuilder(context, BooksDB::class.java, DBNAME).build()
+
+        viewModel.createDataSource(booksDB)
 
         binding.bookListContent.searchBar.bookListSearchView.isSubmitButtonEnabled = true
 
         adapter = BookListAdapter(bookClickCallback)
+
         val rv = binding.root.findViewById<RecyclerView>(R.id.book_list)
         rv.setHasFixedSize(true)
         rv.addItemDecoration(DividerItemDecoration(rv.context, LinearLayoutManager(activity).orientation))
@@ -249,7 +287,7 @@ class BookListFragment : Fragment() {
                 book?.let {
                     viewModel.changeState(it, stateChangeCallback)
                     viewModel.refreshData()
-                    adapter.notifyItemChanged(viewHolder.adapterPosition)
+                    adapter.notifyDataSetChanged()
                 }
             }
 
@@ -285,8 +323,12 @@ class BookListFragment : Fragment() {
                             bgRes = R.color.colorPrimary
                         }
                     }
-
-
+                    if (0 < dX && dX < 400) {
+                        bgRes = R.color.colorGray3
+                    }
+                    if (0 > dX && dX > -450) {
+                        bgRes = R.color.colorGray3
+                    }
                     val textMargin = 40
                     RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
                         .addSwipeRightBackgroundColor(ContextCompat.getColor(context!!, bgRes))
@@ -326,7 +368,6 @@ class BookListFragment : Fragment() {
                         )
                         icon.draw(c)
                     }
-
                 }
 
                 super.onChildDraw(

@@ -4,12 +4,21 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.DataSource
 import androidx.paging.PageKeyedDataSource
+import io.reactivex.Completable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
+import net.edgwbs.bookstorage.model.db.BookSchema
+import net.edgwbs.bookstorage.model.db.BookWithInfoSchema
+import net.edgwbs.bookstorage.model.db.BooksDB
 import net.edgwbs.bookstorage.viewModel.RequestCallback
+import okhttp3.internal.wait
 import retrofit2.Response
 import kotlin.coroutines.CoroutineContext
 
-class BookDataSource(private val scope: CoroutineScope, private val perPage: Int,
+
+// deprecated!!!
+class BookDataSource2(private val scope: CoroutineScope,
+                     private val perPage: Int,
                      private val networkState: MutableLiveData<NetworkState>,
                      private val query: BookListQuery):
     PageKeyedDataSource<Int, Book>() {
@@ -78,19 +87,111 @@ class BookDataSource(private val scope: CoroutineScope, private val perPage: Int
 
 }
 
+// deprecated!!!
+class BookDataSource(private val scope: CoroutineScope,
+                     private val booksDB: BooksDB,
+                     private val perPage: Int,
+                     private val query: BookListQuery):
+    PageKeyedDataSource<Int, Book>() {
 
-class BookDataSourceFactory(private val scope: CoroutineScope,
-                            private val perPage: Int,
-                            private val networkState: MutableLiveData<NetworkState>)
-    :DataSource.Factory<Int, Book>() {
+    private val repository:BookRepository = BookRepository.instance
+    private val firstPage = 1
 
+    override fun loadInitial(
+        params: LoadInitialParams<Int>,
+        callback: LoadInitialCallback<Int, Book>) {
+        fetchData(firstPage, perPage) { books, hasMore ->
+            Log.d("tag", "init!!!!!!!!!")
+            val key = if (hasMore) 1 else null
+            val bookWithEmpty = mutableListOf(Book.forEmpty())
+            bookWithEmpty.addAll(books)
+            callback.onResult(bookWithEmpty,  null, key)
+        }
+    }
+
+    override fun loadAfter(
+        params: LoadParams<Int>,
+        callback: LoadCallback<Int, Book>) {
+        fetchData(params.key, perPage) { books, hasMore ->
+            val key = if (hasMore) params.key + 1 else null
+            callback.onResult(books,  key)
+        }
+    }
+
+    override fun loadBefore(
+        params: LoadParams<Int>,
+        callback: LoadCallback<Int, Book>) {
+        fetchData(params.key, perPage) { books, _ ->
+            val key = if (params.key > 1) params.key - 1 else null
+            callback.onResult(books,  key)
+        }
+    }
+
+    private fun fetchData(page: Int, perPage: Int, callback: (books: List<Book>, hasMore: Boolean) -> Unit) {
+        scope.launch {
+            kotlin.runCatching {
+                Log.d("tag", "launch!!!!!!!!!")
+                val total = booksDB.booksDao().count()
+                val hasMore = total > perPage * page
+                val offset = (page - 1) * perPage
+                val books = booksDB.booksDao().loadAllWithPaged(perPage, offset).map{ b -> b.toModel()}
+                callback(books, hasMore)
+            }.onSuccess {
+                Log.d("tag", "success!!!!!!!!!!1")
+                // networkState.postValue(state)
+            }.onFailure {
+                Log.d("tag", it.toString())
+                Log.d("tag", "fail!!!!!!!!")
+                // networkState.postValue(NetworkState.FAILED)
+            }.also {
+                Log.d("tag", "also!!!!!!!!!")
+                // networkState.postValue(NetworkState.NOTWORK)
+            }
+        }
+    }
+
+}
+
+
+
+class BookDataSourceFactory(private val booksDB: BooksDB):DataSource.Factory<Int, Book>() {
+    var query: BookListQuery = BookListQuery(null, null)
+    var source: DataSource<Int, Book>? = null
+
+    override fun create(): DataSource<Int, Book> {
+        val dbQuery = if(query.state != null && query.book != null) {
+            booksDB.booksDao().findByBookInfoAndState(query.book!!, query.state!!.value)
+        } else if(query.state != null) {
+            booksDB.booksDao().findByState(query.state!!.value)
+        } else if(query.book != null) {
+            booksDB.booksDao().findByBookInfo(query.book!!)
+        } else {
+            booksDB.booksDao().loadAll()
+        }
+        val bookDataSourceFactory = dbQuery.map { booksSchema ->
+            booksSchema.toModel()
+        }
+        source = bookDataSourceFactory.create()
+        return source!!
+    }
+
+    fun changeQuery(query: BookListQuery) {
+        this.query = query
+    }
+}
+
+
+class BookDataSourceFactory2(
+    private val booksDB: BooksDB,
+    private val scope: CoroutineScope,
+    private val perPage: Int): DataSource.Factory<Int, Book>() {
 
     val bookLiveDataSource = MutableLiveData<PageKeyedDataSource<Int, Book>>()
     var source: DataSource<Int, Book>? = null
     var query: BookListQuery = BookListQuery(null, null)
 
     override fun create(): DataSource<Int, Book> {
-        source = BookDataSource(scope, perPage, networkState, query)
+        source = BookDataSource(scope, booksDB, perPage, query)
         bookLiveDataSource.postValue(source as? PageKeyedDataSource<Int, Book>)
         return source!!
     }

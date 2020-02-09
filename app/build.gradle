@@ -26,7 +26,11 @@ android {
     dataBinding {
         enabled = true
     }
+    packagingOptions {
+        exclude 'META-INF/atomicfu.kotlin_module'
+    }
 }
+
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -73,6 +77,22 @@ dependencies {
 
     // paging
     implementation "android.arch.paging:runtime:2.1.0"
+
+    // room
+    implementation "androidx.room:room-runtime:$rootProject.ext.roomVersion"
+    implementation "androidx.room:room-ktx:$rootProject.ext.roomVersion"
+    kapt "androidx.room:room-compiler:$rootProject.ext.roomVersion"
+    androidTestImplementation "androidx.room:room-testing:$rootProject.ext.roomVersion"
+
+    // RxJava
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.14'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
+    implementation 'io.reactivex.rxjava2:rxkotlin:2.2.0'
+
+    // arrow
+    implementation "io.arrow-kt:arrow-optics:$rootProject.ext.arrow_version"
+    implementation "io.arrow-kt:arrow-syntax:$rootProject.ext.arrow_version"
+    kapt    "io.arrow-kt:arrow-meta:$rootProject.ext.arrow_version"
 
     // fontawesome
     implementation 'info.androidhive:fontawesome:0.0.5'

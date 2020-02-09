@@ -35,8 +35,8 @@ interface BookService {
     suspend fun createPublisher(@Body publisherForm: PublisherForm): Response<BookResponse<Publisher>>
 
     @PUT("/book/{id}/state/start")
-    suspend fun bookStateStart(@Path("id") id:Long): Response<Void>
+    suspend fun bookStateStart(@Path("id") id:Long): Response<BookResponse<Book>>
 
     @PUT("/book/{id}/state/end")
-    suspend fun bookStateEnd(@Path("id") id:Long): Response<Void>
+    suspend fun bookStateEnd(@Path("id") id:Long): Response<BookResponse<Book>>
 }

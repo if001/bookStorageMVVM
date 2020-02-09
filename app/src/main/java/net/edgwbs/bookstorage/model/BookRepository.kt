@@ -45,9 +45,9 @@ class BookRepository{
     suspend fun createPublisher(publisherForm: PublisherForm): Response<BookResponse<Publisher>>
             = bookService.createPublisher(publisherForm)
 
-    suspend fun bookReadStart(id: Long): Response<Void> = bookService.bookStateStart(id)
+    suspend fun bookReadStart(id: Long): Response<BookResponse<Book>> = bookService.bookStateStart(id)
 
-    suspend fun bookReadEnd(id: Long): Response<Void> = bookService.bookStateEnd(id)
+    suspend fun bookReadEnd(id: Long): Response<BookResponse<Book>> = bookService.bookStateEnd(id)
 
 
     companion object Factory {
