@@ -14,6 +14,7 @@ import net.edgwbs.bookstorage.model.db.BookSchema
 import net.edgwbs.bookstorage.model.db.BooksDB
 import net.edgwbs.bookstorage.model.db.PublisherSchema
 import net.edgwbs.bookstorage.utils.*
+import okhttp3.internal.wait
 import retrofit2.Response
 import java.lang.Exception
 
@@ -28,7 +29,7 @@ class BookBoundaryCallback(
     private val authorsDB = booksDB.authorsDao()
     private val publishersDB = booksDB.publishersDao()
 
-    var nexPage = 1
+    var nextPage = 1
     var totalCount = 0
 
     override fun onZeroItemsLoaded() {
@@ -50,7 +51,7 @@ class BookBoundaryCallback(
                                 .subscribe()
                         }
                     }.onSuccess {
-                        nexPage += 1
+                        nextPage += 1
                     }.onFailure {
                         errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback(it.toString()))
                     }
@@ -64,15 +65,14 @@ class BookBoundaryCallback(
         // DBに2ページ以降のデータが無いとき
         // 引数に前回取得したデータの最後のものが渡される
         val query = BookListQuery(null, null)
-
         // 以下の条件ではAPIを呼ばないように早期リターン
-        if (totalCount < (nexPage -1) * perPage)
+        if (totalCount < (nextPage -1) * perPage)
             return
         if (totalCount > perPage)
             return
 
         scope.launch {
-            callApiAsync(nexPage, perPage, query)
+            callApiAsync(nextPage, perPage, query)
                 .await()
                 .onSuccess {
                     kotlin.runCatching {
@@ -83,7 +83,7 @@ class BookBoundaryCallback(
                             .subscribeOn(Schedulers.io())
                             .subscribe()
                     }.onSuccess {
-                        nexPage += 1
+                        nextPage += 1
                     }.onFailure {
                         errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback(it.toString()))
                     }
