@@ -43,9 +43,9 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         app:cardCornerRadius="14dp"
-        app:cardElevation="5dp"
-        app:layout_scrollFlags="scroll|enterAlways"
-        >
+        app:cardElevation="5dp">
+<!--        app:layout_scrollFlags="scroll|enterAlways"-->
+<!--        >-->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"

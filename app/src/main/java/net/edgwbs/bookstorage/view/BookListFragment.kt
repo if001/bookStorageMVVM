@@ -42,7 +42,9 @@ import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import kotlinx.android.synthetic.main.app_bar_with_search.view.*
 import kotlinx.android.synthetic.main.fragment_book_list_contents.view.*
 import kotlinx.android.synthetic.main.nav_item.view.*
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
@@ -158,7 +160,6 @@ class BookListFragment : Fragment() {
     }
 
     private fun observeViewModel(viewModel: BookListViewModel) {
-        //データをSTARTED かRESUMED状態である場合にのみ、アップデートするように、LifecycleOwnerを紐付け、ライフサイクル内にオブザーバを追加
         viewModel.getLiveData().removeObservers(viewLifecycleOwner)
         viewModel.getLiveData().observe(
             viewLifecycleOwner,
@@ -188,8 +189,13 @@ class BookListFragment : Fragment() {
 
         errorFeedbackHandler.observe(
             viewLifecycleOwner,
-            Observer { n ->
-                Log.d("tag", n.getMessage(context).toString())
+            Observer { feedback ->
+                // Log.d("tag", n.getMessage(context).toString())
+                feedback?.let{
+                    it.getMessage(context)?.let {msg ->
+                        Snackbar.make(binding.root, msg, Snackbar.LENGTH_SHORT).show()
+                    }
+                }
             }
         )
     }

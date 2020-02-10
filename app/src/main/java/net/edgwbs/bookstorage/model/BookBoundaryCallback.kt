@@ -30,7 +30,7 @@ class BookBoundaryCallback(
     private val publishersDB = booksDB.publishersDao()
 
     var nextPage = 1
-    var totalCount = 0
+    var totalCount: Long = -1
 
     override fun onZeroItemsLoaded() {
         Log.d("tag", "onZeroItemsLoaded")
@@ -45,7 +45,6 @@ class BookBoundaryCallback(
                             Completable.fromAction {
                                 insertAuthorPublisher(it)
                                 insertBook(it)
-                                totalCount = booksDB.booksDao().count()
                             }
                                 .subscribeOn(Schedulers.io())
                                 .subscribe()
@@ -56,7 +55,6 @@ class BookBoundaryCallback(
                         errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback(it.toString()))
                     }
                 }
-
         }
     }
 
@@ -65,16 +63,17 @@ class BookBoundaryCallback(
         // DBに2ページ以降のデータが無いとき
         // 引数に前回取得したデータの最後のものが渡される
         val query = BookListQuery(null, null)
-        // 以下の条件ではAPIを呼ばないように早期リターン
-        if (totalCount < (nextPage -1) * perPage)
-            return
-        if (totalCount > perPage)
-            return
 
+        // 以下の条件ではAPIを呼ばないように早期リターン
+        if (totalCount < (nextPage -1) * perPage && totalCount != (-1).toLong())
+            return
+        if (totalCount < perPage && totalCount != (-1).toLong())
+            return
         scope.launch {
             callApiAsync(nextPage, perPage, query)
                 .await()
                 .onSuccess {
+                    it?.let{ b -> totalCount = b.content.total_count }
                     kotlin.runCatching {
                         Completable.fromAction {
                             insertAuthorPublisher(it)

@@ -1,33 +1,23 @@
 package net.edgwbs.bookstorage.viewModel
 
 import android.app.Application
-import android.app.SharedElementCallback
 import android.util.Log
-import android.util.LogPrinter
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.LivePagedListBuilder
-import androidx.paging.PageKeyedDataSource
 import androidx.paging.PagedList
-import androidx.room.Room
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.edgwbs.bookstorage.model.*
-import net.edgwbs.bookstorage.model.db.BookSchema
 import net.edgwbs.bookstorage.model.db.BooksDB
-import net.edgwbs.bookstorage.model.db.BooksDao
+import net.edgwbs.bookstorage.utils.ApiNotReachException
+import net.edgwbs.bookstorage.utils.BadRequestException
 import net.edgwbs.bookstorage.utils.ErrorFeedback
-import java.lang.Error
-import java.lang.Exception
-import kotlin.concurrent.thread
 
 class BookListViewModel(application: Application): AndroidViewModel(application) {
     private val repository:BookRepository = BookRepository.instance
-    private val perPage: Int = 5
+    private val perPage: Int = 10
     // var page: Int = 1
 
     private lateinit var bookPagedList: LiveData<PagedList<Book>>
@@ -48,7 +38,13 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
 //            .build()
 
         bookDataSourceFactory = BookDataSourceFactory(booksDB)
-        val bookBoundaryCallback = BookBoundaryCallback(viewModelScope, booksDB, networkState, perPage, errorFeedbackHandler)
+        val bookBoundaryCallback = BookBoundaryCallback(
+            viewModelScope,
+            booksDB,
+            networkState,
+            perPage,
+            errorFeedbackHandler
+        )
         bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig)
             .setBoundaryCallback(bookBoundaryCallback)
             .build()
@@ -58,6 +54,29 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
 
     fun changeState(book: Book, requestCallback: RequestCallback): Job {
         return BookModelCommon.changeState(book, viewModelScope, repository, requestCallback)
+    }
+
+    private fun getTotalCount(errorFeedbackHandler: MutableLiveData<ErrorFeedback>) = viewModelScope.async{
+        kotlin.runCatching {
+            val r = repository.getBooks(1, 1, null, null)
+            if (r.isSuccessful) {
+                r.body()!!.content.total_count
+            } else {
+                throw BadRequestException(r.errorBody()?.toString())
+            }
+        }.onFailure {
+            when (it) {
+                ApiNotReachException() ->
+                    errorFeedbackHandler.postValue(ErrorFeedback.ApiNotReachErrorFeedback(it.toString()))
+                else ->
+                    errorFeedbackHandler.postValue(
+                        ErrorFeedback.ApiErrorFeedback(
+                            it.toString(),
+                            500
+                        )
+                    )
+            }
+        }
     }
 
     fun refreshData() {
