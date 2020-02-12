@@ -18,12 +18,12 @@ import net.edgwbs.bookstorage.utils.ErrorFeedback
 class BookListViewModel(application: Application): AndroidViewModel(application) {
     private val repository:BookRepository = BookRepository.instance
     private val perPage: Int = 10
-    // var page: Int = 1
 
     private lateinit var bookPagedList: LiveData<PagedList<Book>>
     // private var bookLiveDataSource: MutableLiveData<PageKeyedDataSource<Int, Book>>? = null
     val networkState = MutableLiveData<NetworkState>()
     private lateinit var bookDataSourceFactory: BookDataSourceFactory
+    private lateinit var bookBoundaryCallback: BookBoundaryCallback
 
     fun createDataSource(booksDB: BooksDB, errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
         val pagedListConfig = PagedList.Config.Builder()
@@ -31,20 +31,15 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
             .setInitialLoadSizeHint(perPage)
             .build()
 
-//        bookDataSourceFactory = BookDataSourceFactory(booksDB)
-//        val bookBoundaryCallback = BookBoundaryCallback(viewModelScope, booksDB, networkState, perPage, errorFeedbackHandler)
-//        bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig)
-//            .setBoundaryCallback(bookBoundaryCallback)
-//            .build()
-
         bookDataSourceFactory = BookDataSourceFactory(booksDB)
-        val bookBoundaryCallback = BookBoundaryCallback(
+        bookBoundaryCallback = BookBoundaryCallback(
             viewModelScope,
             booksDB,
             networkState,
             perPage,
             errorFeedbackHandler
         )
+
         bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig)
             .setBoundaryCallback(bookBoundaryCallback)
             .build()
@@ -56,35 +51,13 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
         return BookModelCommon.changeState(book, viewModelScope, repository, requestCallback)
     }
 
-    private fun getTotalCount(errorFeedbackHandler: MutableLiveData<ErrorFeedback>) = viewModelScope.async{
-        kotlin.runCatching {
-            val r = repository.getBooks(1, 1, null, null)
-            if (r.isSuccessful) {
-                r.body()!!.content.total_count
-            } else {
-                throw BadRequestException(r.errorBody()?.toString())
-            }
-        }.onFailure {
-            when (it) {
-                ApiNotReachException() ->
-                    errorFeedbackHandler.postValue(ErrorFeedback.ApiNotReachErrorFeedback(it.toString()))
-                else ->
-                    errorFeedbackHandler.postValue(
-                        ErrorFeedback.ApiErrorFeedback(
-                            it.toString(),
-                            500
-                        )
-                    )
-            }
-        }
-    }
-
     fun refreshData() {
         bookDataSourceFactory.source?.invalidate()
     }
 
     fun changeQuery(query: BookListQuery) {
         bookDataSourceFactory.changeQuery(query)
+        bookBoundaryCallback.changeQuery(query)
     }
 
     fun cancelJob() {

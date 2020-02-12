@@ -3,20 +3,14 @@ package net.edgwbs.bookstorage.model
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.PagedList
-import arrow.core.Failure
-import io.reactivex.Completable
-import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.edgwbs.bookstorage.model.db.AuthorSchema
 import net.edgwbs.bookstorage.model.db.BookSchema
 import net.edgwbs.bookstorage.model.db.BooksDB
 import net.edgwbs.bookstorage.model.db.PublisherSchema
-import net.edgwbs.bookstorage.utils.*
-import okhttp3.internal.wait
-import retrofit2.Response
-import java.lang.Exception
+import net.edgwbs.bookstorage.utils.ApiNotReachException
+import net.edgwbs.bookstorage.utils.BadRequestException
+import net.edgwbs.bookstorage.utils.ErrorFeedback
 
 class BookBoundaryCallback(
     private val scope: CoroutineScope,
@@ -31,23 +25,24 @@ class BookBoundaryCallback(
 
     var nextPage = 1
     var totalCount: Long = -1
+    var query = BookListQuery(null, null)
 
     override fun onZeroItemsLoaded() {
         Log.d("tag", "onZeroItemsLoaded")
         // DBから初回取得時にデータが無いとき
-        val query = BookListQuery(null, null)
+        if (totalCount == (0).toLong())
+            return
+
         scope.launch {
             callApiAsync(1, perPage, query)
                 .await()
                 .onSuccess {
+                    Log.d("tag", it.toString())
+                    it?.let{ b -> totalCount = b.content.total_count }
                     kotlin.runCatching {
-                        booksDB.runInTransaction {
-                            Completable.fromAction {
-                                insertAuthorPublisher(it)
-                                insertBook(it)
-                            }
-                                .subscribeOn(Schedulers.io())
-                                .subscribe()
+                        withContext(scope.coroutineContext) {
+                            insertAuthorPublisher(it)
+                            insertBook(it)
                         }
                     }.onSuccess {
                         nextPage += 1
@@ -62,8 +57,6 @@ class BookBoundaryCallback(
         Log.d("tag", "onItemAtEndLoaded")
         // DBに2ページ以降のデータが無いとき
         // 引数に前回取得したデータの最後のものが渡される
-        val query = BookListQuery(null, null)
-
         // 以下の条件ではAPIを呼ばないように早期リターン
         if (totalCount < (nextPage -1) * perPage && totalCount != (-1).toLong())
             return
@@ -75,12 +68,11 @@ class BookBoundaryCallback(
                 .onSuccess {
                     it?.let{ b -> totalCount = b.content.total_count }
                     kotlin.runCatching {
-                        Completable.fromAction {
+                        withContext(scope.coroutineContext) {
                             insertAuthorPublisher(it)
                             insertBook(it)
+                            Log.d("tag", nextPage.toString())
                         }
-                            .subscribeOn(Schedulers.io())
-                            .subscribe()
                     }.onSuccess {
                         nextPage += 1
                     }.onFailure {
@@ -91,22 +83,30 @@ class BookBoundaryCallback(
     }
 
     private fun insertAuthorPublisher(response: BookResponse<PaginateBook>?) {
-        response?.let {
-            it.content.books.forEach { book ->
-                book.author?.let { ele ->
-                    authorsDB.find(ele.id) ?: {
-                        val new = AuthorSchema(ele.id, ele.name)
-                        authorsDB.insert(listOf(new))
-                    }()
-                }
-                book.publisher?.let { ele ->
-                    publishersDB.find(ele.id) ?: {
-                        val new = PublisherSchema(ele.id, ele.name)
-                        publishersDB.insert(listOf(new))
-                    }()
+            response?.let {
+                it.content.books.forEach { book ->
+                    book.author?.let { ele ->
+                        scope.launch(Dispatchers.IO) {
+                            authorsDB.find(ele.id) ?: {
+                                scope.launch(Dispatchers.IO) {
+                                    val new = AuthorSchema(ele.id, ele.name)
+                                    authorsDB.insert(listOf(new))
+                                }
+                            }()
+                        }
+                    }
+                    book.publisher?.let { ele ->
+                        scope.launch(Dispatchers.IO) {
+                            publishersDB.find(ele.id) ?: {
+                                scope.launch(Dispatchers.IO) {
+                                    val new = PublisherSchema(ele.id, ele.name)
+                                    publishersDB.insert(listOf(new))
+                                }
+                            }()
+                        }
+                    }
                 }
             }
-        }
     }
 
 
@@ -130,7 +130,11 @@ class BookBoundaryCallback(
                     book.updatedAt
                 )
             }
-            booksDB.booksDao().insert(b)
+            scope.launch(Dispatchers.IO) {
+                Log.d("tag", b.toString())
+                Log.d("tag", "insert book!!!!!")
+                booksDB.booksDao().insert(b)
+            }
         }
     }
 
@@ -161,5 +165,9 @@ class BookBoundaryCallback(
         }.also {
             networkState.postValue(NetworkState.NOTWORK)
         }
+    }
+
+    fun changeQuery(query: BookListQuery) {
+        this.query = query
     }
 }

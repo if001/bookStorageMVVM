@@ -69,6 +69,8 @@ class BookListFragment : Fragment() {
 
     private val bookClickCallback = object: BookClickCallback {
         override fun onClick(book: Book) {
+            viewModel.cancelJob()
+
             val bundle = Bundle()
             bundle.putString(FragmentConstBookID, book.id.toString())
             val fragment = BookDetailFragment()
@@ -193,15 +195,23 @@ class BookListFragment : Fragment() {
                 // Log.d("tag", n.getMessage(context).toString())
                 feedback?.let{
                     it.getMessage(context)?.let {msg ->
-                        Snackbar.make(binding.root, msg, Snackbar.LENGTH_SHORT).show()
+                        Log.d("tag", msg)
+                        Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
                     }
                 }
             }
         )
+//        searchBoxText.observe(
+//            viewLifecycleOwner,
+//            Observer { text ->
+//                bookListQuery.book = text
+//                viewModel.changeQuery(bookListQuery)
+//                viewModel.refreshData()
+//            }
+//        )
     }
 
     private fun initMenu(activity: FragmentActivity, view: View) {
-
         val drawerLayout = view.findViewById<DrawerLayout>(R.id.drawer_layout)
         val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
 
@@ -261,6 +271,9 @@ class BookListFragment : Fragment() {
         val searchView = binding.bookListContent.searchBar.bookListSearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
+//                newText?.let {
+//                    searchBoxText.postValue(it)
+//                }
                 return true
             }
 
@@ -279,9 +292,6 @@ class BookListFragment : Fragment() {
             }
             false
         }
-    }
-
-    private fun loadBookJobCancel() {
     }
 
     private fun getSwipeToDismissTouchHelper(adapter: BookListAdapter) =

@@ -168,6 +168,7 @@ class BookDataSourceFactory(private val booksDB: BooksDB):DataSource.Factory<Int
         } else {
             booksDB.booksDao().loadAll()
         }
+        Log.d("tag:", query.book.toString())
         val bookDataSourceFactory = dbQuery.map { booksSchema ->
             booksSchema.toModel()
         }
