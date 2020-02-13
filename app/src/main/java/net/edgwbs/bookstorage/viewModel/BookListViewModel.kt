@@ -1,7 +1,6 @@
 package net.edgwbs.bookstorage.viewModel
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,36 +9,37 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import kotlinx.coroutines.*
 import net.edgwbs.bookstorage.model.*
-import net.edgwbs.bookstorage.model.db.BooksDB
-import net.edgwbs.bookstorage.utils.ApiNotReachException
-import net.edgwbs.bookstorage.utils.BadRequestException
+import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
+import net.edgwbs.bookstorage.repositories.db.BooksDB
+import net.edgwbs.bookstorage.repositories.api.BookRepository
 import net.edgwbs.bookstorage.utils.ErrorFeedback
 
 class BookListViewModel(application: Application): AndroidViewModel(application) {
-    private val repository:BookRepository = BookRepository.instance
     private val perPage: Int = 10
+    // todo コネクションプールどうなってんの??????
+    private val booksRepository: BookRepositoryFactory = BookRepositoryFactory.build(application)
 
     private lateinit var bookPagedList: LiveData<PagedList<Book>>
-    // private var bookLiveDataSource: MutableLiveData<PageKeyedDataSource<Int, Book>>? = null
+    // todo loadingstateに変更する
     val networkState = MutableLiveData<NetworkState>()
     private lateinit var bookDataSourceFactory: BookDataSourceFactory
     private lateinit var bookBoundaryCallback: BookBoundaryCallback
 
-    fun createDataSource(booksDB: BooksDB, errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
+
+    fun createDataSource(errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
         val pagedListConfig = PagedList.Config.Builder()
             .setPageSize(perPage)
             .setInitialLoadSizeHint(perPage)
             .build()
 
-        bookDataSourceFactory = BookDataSourceFactory(booksDB)
+        bookDataSourceFactory = BookDataSourceFactory(booksRepository)
         bookBoundaryCallback = BookBoundaryCallback(
             viewModelScope,
-            booksDB,
+            booksRepository,
             networkState,
             perPage,
             errorFeedbackHandler
         )
-
         bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig)
             .setBoundaryCallback(bookBoundaryCallback)
             .build()
@@ -47,8 +47,8 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
 
     fun getLiveData(): LiveData<PagedList<Book>> = bookPagedList
 
-    fun changeState(book: Book, requestCallback: RequestCallback): Job {
-        return BookModelCommon.changeState(book, viewModelScope, repository, requestCallback)
+    fun changeState(book: Book, errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
+        return BookModelCommon.changeState(book, viewModelScope, booksRepository, errorFeedbackHandler)
     }
 
     fun refreshData() {

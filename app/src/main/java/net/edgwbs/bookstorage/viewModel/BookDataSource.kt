@@ -1,29 +1,27 @@
-package net.edgwbs.bookstorage.model
+package net.edgwbs.bookstorage.viewModel
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.DataSource
 import androidx.paging.PageKeyedDataSource
-import io.reactivex.Completable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
-import net.edgwbs.bookstorage.model.db.BookSchema
-import net.edgwbs.bookstorage.model.db.BookWithInfoSchema
-import net.edgwbs.bookstorage.model.db.BooksDB
-import net.edgwbs.bookstorage.viewModel.RequestCallback
-import okhttp3.internal.wait
-import retrofit2.Response
-import kotlin.coroutines.CoroutineContext
+import net.edgwbs.bookstorage.model.Book
+import net.edgwbs.bookstorage.model.ReadState
+import net.edgwbs.bookstorage.model.getReadStateStr
+import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
+import net.edgwbs.bookstorage.repositories.db.BooksDB
+import net.edgwbs.bookstorage.repositories.api.BookRepository
 
 
 // deprecated!!!
 class BookDataSource2(private val scope: CoroutineScope,
-                     private val perPage: Int,
-                     private val networkState: MutableLiveData<NetworkState>,
-                     private val query: BookListQuery):
+                      private val perPage: Int,
+                      private val networkState: MutableLiveData<NetworkState>,
+                      private val query: BookListQuery
+):
     PageKeyedDataSource<Int, Book>() {
 
-    private val repository:BookRepository = BookRepository.instance
+    private val repository: BookRepository = BookRepository.instance
     private val firstPage = 1
 
     override fun loadInitial(
@@ -91,10 +89,11 @@ class BookDataSource2(private val scope: CoroutineScope,
 class BookDataSource(private val scope: CoroutineScope,
                      private val booksDB: BooksDB,
                      private val perPage: Int,
-                     private val query: BookListQuery):
+                     private val query: BookListQuery
+):
     PageKeyedDataSource<Int, Book>() {
 
-    private val repository:BookRepository = BookRepository.instance
+    private val repository: BookRepository = BookRepository.instance
     private val firstPage = 1
 
     override fun loadInitial(
@@ -154,8 +153,10 @@ class BookDataSource(private val scope: CoroutineScope,
 
 
 
-class BookDataSourceFactory(private val booksDB: BooksDB):DataSource.Factory<Int, Book>() {
-    var query: BookListQuery = BookListQuery(null, null)
+class BookDataSourceFactory(bookRepository: BookRepositoryFactory):DataSource.Factory<Int, Book>() {
+    private val booksDB = bookRepository.getDB()
+    var query: BookListQuery =
+        BookListQuery(null, null)
     var source: DataSource<Int, Book>? = null
 
     override fun create(): DataSource<Int, Book> {
@@ -189,7 +190,8 @@ class BookDataSourceFactory2(
 
     val bookLiveDataSource = MutableLiveData<PageKeyedDataSource<Int, Book>>()
     var source: DataSource<Int, Book>? = null
-    var query: BookListQuery = BookListQuery(null, null)
+    var query: BookListQuery =
+        BookListQuery(null, null)
 
     override fun create(): DataSource<Int, Book> {
         source = BookDataSource(scope, booksDB, perPage, query)

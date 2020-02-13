@@ -1,5 +1,6 @@
-package net.edgwbs.bookstorage.model
+package net.edgwbs.bookstorage.repositories.api
 
+import net.edgwbs.bookstorage.model.*
 import retrofit2.Response
 import retrofit2.http.*
 

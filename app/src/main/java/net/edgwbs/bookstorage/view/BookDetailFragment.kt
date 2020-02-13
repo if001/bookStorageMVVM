@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.coroutines.Job
@@ -14,6 +15,7 @@ import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookDetailBinding
 import net.edgwbs.bookstorage.model.BookResponse
 import net.edgwbs.bookstorage.model.HandelError
+import net.edgwbs.bookstorage.utils.ErrorFeedback
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookViewModel
 import net.edgwbs.bookstorage.viewModel.RequestCallback
@@ -26,6 +28,7 @@ class BookDetailFragment : Fragment() {
     private lateinit var binding: FragmentBookDetailBinding
     private lateinit var job: Job
     private var bookIDLong: Long? = null
+    private val errorFeedbackHandler = MutableLiveData<ErrorFeedback>()
 
     private val loadBookCallback = object: RequestCallback {
         override fun <Book>onRequestSuccess(r: Book?) {
@@ -44,23 +47,23 @@ class BookDetailFragment : Fragment() {
         }
     }
 
-    private val changeStateCallback = object: RequestCallback {
-        override fun <Book> onRequestSuccess(r: Book?) {
-        }
-
-        override fun onRequestFail() {
-            // toPrevPage()
-        }
-
-        override fun onFail(e: HandelError) {
-            // toPrevPage()
-        }
-
-        override fun onFinal() {
-            Thread.sleep(2000)
-            binding.isStateChangeLoading = false
-        }
-    }
+//    private val changeStateCallback = object: RequestCallback {
+//        override fun <Book> onRequestSuccess(r: Book?) {
+//        }
+//
+//        override fun onRequestFail() {
+//            // toPrevPage()
+//        }
+//
+//        override fun onFail(e: HandelError) {
+//            // toPrevPage()
+//        }
+//
+//        override fun onFinal() {
+//            Thread.sleep(2000)
+//            binding.isStateChangeLoading = false
+//        }
+//    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -102,7 +105,7 @@ class BookDetailFragment : Fragment() {
                     if (book != null) {
                         binding.bookStateIcon.setOnClickListener{
                             binding.isStateChangeLoading = true
-                            viewModel.changeState(book, changeStateCallback)
+                            viewModel.changeState(book, errorFeedbackHandler)
                         }
                         job = viewModel.loadBook(bookIDLong!!, loadBookCallback)
                         binding.book = book

@@ -1,4 +1,4 @@
-package net.edgwbs.bookstorage.model.db
+package net.edgwbs.bookstorage.repositories.db
 
 
 import androidx.room.*

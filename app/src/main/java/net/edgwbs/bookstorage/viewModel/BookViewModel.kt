@@ -7,13 +7,15 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.edgwbs.bookstorage.model.Book
-import net.edgwbs.bookstorage.model.BookRepository
+import net.edgwbs.bookstorage.repositories.api.BookRepository
 import net.edgwbs.bookstorage.model.HandelError
+import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
+import net.edgwbs.bookstorage.utils.ErrorFeedback
 
 class BookViewModel(application: Application): AndroidViewModel(application) {
     private val repository: BookRepository = BookRepository.instance
     private var bookLiveData: MutableLiveData<Book> = MutableLiveData()
-
+    private val booksRepository: BookRepositoryFactory = BookRepositoryFactory.build(application)
 
     fun getLiveData(): MutableLiveData<Book> = bookLiveData
 
@@ -41,7 +43,7 @@ class BookViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    fun changeState(book: Book, requestCallback: RequestCallback): Job {
-        return BookModelCommon.changeState(book, viewModelScope, repository, requestCallback)
+    fun changeState(book: Book, errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
+        return BookModelCommon.changeState(book, viewModelScope, booksRepository, errorFeedbackHandler)
     }
 }

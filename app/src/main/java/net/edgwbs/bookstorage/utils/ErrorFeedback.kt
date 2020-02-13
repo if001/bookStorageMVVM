@@ -20,8 +20,9 @@ sealed class ErrorFeedback {
     }
 }
 
-
+class DatabaseNotReachException: RuntimeException("db not reach")
 class ApiNotReachException: RuntimeException("api not reach")
 class BadRequestException(msg: String?): RuntimeException("bad request:$msg")
-
-
+class BadBookStateException: RuntimeException("bad state of book")
+// todo いい名前つける
+class InternalErrorException: RuntimeException("internal server error")

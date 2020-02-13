@@ -1,10 +1,9 @@
-package net.edgwbs.bookstorage.model
+package net.edgwbs.bookstorage.repositories.api
 
 
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
+import net.edgwbs.bookstorage.model.SearchResult
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -15,7 +14,8 @@ class RakutenRepository{
     private val hits: Int = 30
     private val baseURL = "https://app.rakuten.co.jp/services/api/"
 
-    private val rakutenService: RakutenService = client().create(RakutenService::class.java)
+    private val rakutenService: RakutenService = client().create(
+        RakutenService::class.java)
     // private val bookService: BookService = BookServiceMock()
 
     private fun client(): Retrofit {

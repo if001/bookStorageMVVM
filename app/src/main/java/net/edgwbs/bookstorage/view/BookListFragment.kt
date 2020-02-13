@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.net.Network
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -28,10 +27,6 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
-import arrow.core.Either
-import arrow.core.invalid
-import arrow.core.left
-import arrow.core.right
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
@@ -40,20 +35,18 @@ import io.reactivex.Completable
 import io.reactivex.schedulers.Schedulers
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import kotlinx.android.synthetic.main.app_bar_with_search.view.*
-import kotlinx.android.synthetic.main.fragment_book_list_contents.view.*
 import kotlinx.android.synthetic.main.nav_item.view.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
 import net.edgwbs.bookstorage.model.*
-import net.edgwbs.bookstorage.model.db.BooksDB
+import net.edgwbs.bookstorage.repositories.db.BooksDB
 import net.edgwbs.bookstorage.model.Book
 import net.edgwbs.bookstorage.utils.ErrorFeedback
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
+import net.edgwbs.bookstorage.viewModel.BookListQuery
 import net.edgwbs.bookstorage.viewModel.BookListViewModel
+import net.edgwbs.bookstorage.viewModel.NetworkState
 import net.edgwbs.bookstorage.viewModel.RequestCallback
 
 class BookListFragment : Fragment() {
@@ -62,9 +55,8 @@ class BookListFragment : Fragment() {
     }
     private lateinit var binding: FragmentBookListMainBinding
     private lateinit var adapter: BookListAdapter
-    var bookListQuery: BookListQuery = BookListQuery(null, null)
-    private val DBNAME = "books_test"
-    private lateinit var booksDB: BooksDB
+    var bookListQuery: BookListQuery =
+        BookListQuery(null, null)
     private val errorFeedbackHandler = MutableLiveData<ErrorFeedback>()
 
     private val bookClickCallback = object: BookClickCallback {
@@ -85,40 +77,6 @@ class BookListFragment : Fragment() {
         }
     }
 
-    private val stateChangeCallback = object : RequestCallback {
-        // todo callbackではUIへのエラー表示だけを扱うようにする
-        override fun <Book>onRequestSuccess(r: Book?) {
-            Log.d("tag", "onRequestSuccess")
-            r?.let{ it ->
-                val book = it as net.edgwbs.bookstorage.model.Book
-                Log.d("tag", "state update!!!")
-                Log.d("tag", book.toString())
-                Completable.fromAction {
-                    kotlin.runCatching {
-                        // todo apiとまとめる
-                        booksDB.booksDao().update(book.toSchema())
-                    }.onSuccess {
-                        Log.d("tag", "success!!!")
-                    }.onFailure {
-                        Log.d("tag", "fail")
-                        Log.d("tag", it.toString())
-                    }
-                }
-                    .subscribeOn(Schedulers.io())
-                    .subscribe()
-            }
-        }
-        override fun onRequestFail() {
-            Log.d("tag", "state fail")
-        }
-        override fun onFail(e: HandelError) {
-            Log.d("tag", "state fail")
-        }
-        override fun onFinal() {
-            Log.d("tag", "state final")
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -133,9 +91,7 @@ class BookListFragment : Fragment() {
         initFab(binding.bookRegisterFab, context)
         initSearchBox()
 
-        booksDB = Room.databaseBuilder(context, BooksDB::class.java, DBNAME).build()
-
-        viewModel.createDataSource(booksDB, errorFeedbackHandler)
+        viewModel.createDataSource(errorFeedbackHandler)
 
         binding.bookListContent.searchBar.bookListSearchView.isSubmitButtonEnabled = true
 
@@ -311,7 +267,7 @@ class BookListFragment : Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val book = adapter.getItemByPosition(viewHolder.adapterPosition)
                 book?.let {
-                    viewModel.changeState(it, stateChangeCallback)
+                    viewModel.changeState(it, errorFeedbackHandler)
                     viewModel.refreshData()
                     adapter.notifyDataSetChanged()
                 }

@@ -1,7 +1,6 @@
 package net.edgwbs.bookstorage.model
 
-import android.util.Log
-import net.edgwbs.bookstorage.model.db.BookSchema
+import net.edgwbs.bookstorage.repositories.db.BookSchema
 import java.util.*
 
 data class BookResponse<T> (

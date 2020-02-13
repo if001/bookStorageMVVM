@@ -1,14 +1,19 @@
-package net.edgwbs.bookstorage.model
+package net.edgwbs.bookstorage.repositories.api
 
-import retrofit2.Call
-import retrofit2.Callback
 import retrofit2.Response
-import okhttp3.Request
-import kotlinx.coroutines.*
+import net.edgwbs.bookstorage.model.*
 
- class BookServiceMock: BookService {
+class BookServiceMock: BookService {
      override suspend fun findBook(id: Long): Response<BookResponse<Book>> {
-         return Response.success(BookResponse(Book.createMock(id, "mock title", ReadState.Read)))
+         return Response.success(
+             BookResponse(
+                 Book.createMock(
+                     id,
+                     "mock title",
+                     ReadState.Read
+                 )
+             )
+         )
      }
 
      override suspend fun createBook(bookForm: BookForm): Response<BookResponse<Book>> {
@@ -49,6 +54,13 @@ import kotlinx.coroutines.*
          status: String?,
          book: String?
      ): Response<BookResponse<PaginateBook>> {
-         return Response.success(BookResponse(PaginateBook.mockBooks(page, perPage)))
+         return Response.success(
+             BookResponse(
+                 PaginateBook.mockBooks(
+                     page,
+                     perPage
+                 )
+             )
+         )
      }
 }

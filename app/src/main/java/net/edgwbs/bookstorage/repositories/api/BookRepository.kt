@@ -1,9 +1,8 @@
-package net.edgwbs.bookstorage.model
+package net.edgwbs.bookstorage.repositories.api
 
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
+import net.edgwbs.bookstorage.model.*
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -11,7 +10,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 class BookRepository{
     private val baseURL = "http://10.0.2.2:8081"
 
-    private val bookService: BookService = client().create(BookService::class.java)
+    private val bookService: BookService = client().create(
+        BookService::class.java)
     // private val bookService: BookService = BookServiceMock()
 
     private fun client(): Retrofit {
@@ -52,8 +52,8 @@ class BookRepository{
 
     companion object Factory {
         val instance: BookRepository
-        @Synchronized get() {
-            return BookRepository()
-        }
+            @Synchronized get() {
+                return BookRepository()
+            }
     }
 }

@@ -1,41 +1,58 @@
 package net.edgwbs.bookstorage.viewModel
 
-import android.util.Log
-import androidx.lifecycle.viewModelScope
-import arrow.core.Either
-import arrow.core.right
+import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.edgwbs.bookstorage.model.*
+import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
+import net.edgwbs.bookstorage.repositories.api.BookRepository
+import net.edgwbs.bookstorage.utils.BadRequestException
+import net.edgwbs.bookstorage.utils.ErrorFeedback
+import net.edgwbs.bookstorage.utils.InternalErrorException
 
 object BookModelCommon {
-    fun changeState(book: Book, scope: CoroutineScope, repository: BookRepository, requestCallback: RequestCallback): Job {
-        return scope.launch {
+    fun changeState(book: Book, scope: CoroutineScope,
+                    bookRepositoryFactory: BookRepositoryFactory,
+                    errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
+        val booksAPI = bookRepositoryFactory.getAPI()
+        val booksDB = bookRepositoryFactory.getDB()
+
+        scope.launch(Dispatchers.IO) {
             val result = kotlin.runCatching {
                 val response = when (book.readState) {
-                    ReadState.NotRead.value -> repository.bookReadStart(book.id)
-                    ReadState.Reading.value -> repository.bookReadEnd(book.id)
-                    ReadState.Read.value -> repository.bookReadStart(book.id)
+                    ReadState.NotRead.value -> booksAPI.bookReadStart(book.id)
+                    ReadState.Reading.value -> booksAPI.bookReadEnd(book.id)
+                    ReadState.Read.value -> booksAPI.bookReadStart(book.id)
                     else -> null
-                }
-                if (response == null) {
-                    // throw IllegalArgumentException("bad status")
-                    requestCallback.onRequestFail()
-                } else if (response.isSuccessful) {
-                    requestCallback.onRequestSuccess(response.body()!!.content)
+                } ?: throw InternalErrorException()
+
+                if (response.body() !== null){
+                    throw InternalErrorException()
                 } else {
-                    // todo error handle
-                    throw IllegalArgumentException("network error")
+                    if (!response.isSuccessful) {
+                        throw BadRequestException("change state")
+                    }
+                    if (response.body() == null) {
+                        throw InternalErrorException()
+                    }
+                    response.body()!!
                 }
             }
-            result
-                .onFailure {
-                    requestCallback.onFail(HandelError.apiError)
-                }
-                .also {
-                    requestCallback.onFinal()
-                }
+
+            result.onSuccess {
+                    val updatedBook = it.content
+                    scope.launch(Dispatchers.IO) {
+                        kotlin.runCatching {
+                            booksDB.booksDao().update(updatedBook.toSchema())
+                        }.onFailure {th ->
+                            errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback(th.toString()))
+                        }
+                    }
+            }.onFailure {th ->
+                errorFeedbackHandler.postValue(ErrorFeedback.ApiNotReachErrorFeedback(th.toString()))
+            }
         }
     }
 }

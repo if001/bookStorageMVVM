@@ -1,28 +1,29 @@
-package net.edgwbs.bookstorage.model
+package net.edgwbs.bookstorage.viewModel
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.PagedList
 import kotlinx.coroutines.*
-import net.edgwbs.bookstorage.model.db.AuthorSchema
-import net.edgwbs.bookstorage.model.db.BookSchema
-import net.edgwbs.bookstorage.model.db.BooksDB
-import net.edgwbs.bookstorage.model.db.PublisherSchema
+import net.edgwbs.bookstorage.model.*
+import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
+import net.edgwbs.bookstorage.repositories.db.AuthorSchema
+import net.edgwbs.bookstorage.repositories.db.BookSchema
+import net.edgwbs.bookstorage.repositories.db.PublisherSchema
 import net.edgwbs.bookstorage.utils.ApiNotReachException
 import net.edgwbs.bookstorage.utils.BadRequestException
 import net.edgwbs.bookstorage.utils.ErrorFeedback
 
 class BookBoundaryCallback(
     private val scope: CoroutineScope,
-    private val booksDB: BooksDB,
+    bookRepositoryFactory: BookRepositoryFactory,
     private val networkState: MutableLiveData<NetworkState>,
     private val perPage: Int,
     private val errorFeedbackHandler: MutableLiveData<ErrorFeedback>
 ): PagedList.BoundaryCallback<Book>() {
-    private val repository:BookRepository = BookRepository.instance
-    private val authorsDB = booksDB.authorsDao()
-    private val publishersDB = booksDB.publishersDao()
-
+    private val booksDB = bookRepositoryFactory.getDB().booksDao()
+    private val authorsDB = bookRepositoryFactory.getDB().authorsDao()
+    private val publishersDB = bookRepositoryFactory.getDB().publishersDao()
+    private val booksAPI = bookRepositoryFactory.getAPI()
     var nextPage = 1
     var totalCount: Long = -1
     var query = BookListQuery(null, null)
@@ -89,7 +90,10 @@ class BookBoundaryCallback(
                         scope.launch(Dispatchers.IO) {
                             authorsDB.find(ele.id) ?: {
                                 scope.launch(Dispatchers.IO) {
-                                    val new = AuthorSchema(ele.id, ele.name)
+                                    val new = AuthorSchema(
+                                        ele.id,
+                                        ele.name
+                                    )
                                     authorsDB.insert(listOf(new))
                                 }
                             }()
@@ -99,7 +103,11 @@ class BookBoundaryCallback(
                         scope.launch(Dispatchers.IO) {
                             publishersDB.find(ele.id) ?: {
                                 scope.launch(Dispatchers.IO) {
-                                    val new = PublisherSchema(ele.id, ele.name)
+                                    val new =
+                                        PublisherSchema(
+                                            ele.id,
+                                            ele.name
+                                        )
                                     publishersDB.insert(listOf(new))
                                 }
                             }()
@@ -133,7 +141,7 @@ class BookBoundaryCallback(
             scope.launch(Dispatchers.IO) {
                 Log.d("tag", b.toString())
                 Log.d("tag", "insert book!!!!!")
-                booksDB.booksDao().insert(b)
+                booksDB.insert(b)
             }
         }
     }
@@ -146,7 +154,7 @@ class BookBoundaryCallback(
     private suspend fun callApiAsync(page: Int, perPage:Int, query: BookListQuery) = scope.async {
         kotlin.runCatching {
             networkState.postValue(NetworkState.RUNNING)
-            val response = repository.getBooks(page, perPage, query.getStateStr(), query.book)
+            val response = booksAPI.getBooks(page, perPage, query.getStateStr(), query.book)
             if (response.isSuccessful) {
                 networkState.postValue(NetworkState.SUCCESS)
                 response.body()

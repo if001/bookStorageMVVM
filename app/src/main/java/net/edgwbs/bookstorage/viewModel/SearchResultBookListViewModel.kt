@@ -1,18 +1,16 @@
 package net.edgwbs.bookstorage.viewModel
 
 import android.app.Application
-import android.util.AndroidRuntimeException
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import net.edgwbs.bookstorage.model.*
-import okhttp3.internal.toImmutableList
-import java.lang.Appendable
+import net.edgwbs.bookstorage.repositories.api.BookRepository
+import net.edgwbs.bookstorage.repositories.api.RakutenRepository
 
 class SearchResultBookListViewModel(application: Application): AndroidViewModel(application) {
     private val rakutenRepository: RakutenRepository = RakutenRepository.instance
