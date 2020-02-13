@@ -42,6 +42,7 @@ import net.edgwbs.bookstorage.databinding.FragmentBookListMainBinding
 import net.edgwbs.bookstorage.model.*
 import net.edgwbs.bookstorage.repositories.db.BooksDB
 import net.edgwbs.bookstorage.model.Book
+import net.edgwbs.bookstorage.utils.ApiNotReachException
 import net.edgwbs.bookstorage.utils.ErrorFeedback
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookListQuery
@@ -149,11 +150,14 @@ class BookListFragment : Fragment() {
             viewLifecycleOwner,
             Observer { feedback ->
                 // Log.d("tag", n.getMessage(context).toString())
-                feedback?.let{
-                    it.getMessage(context)?.let {msg ->
-                        Log.d("tag", msg)
-                        Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+                val snackbarTime = when(feedback) {
+                    ErrorFeedback.ApiNotReachErrorFeedback -> {
+                        Snackbar.LENGTH_INDEFINITE
                     }
+                    else -> Snackbar.LENGTH_LONG
+                }
+                feedback?.let{
+                    Snackbar.make(binding.root, it.getMessage(), snackbarTime).show()
                 }
             }
         )

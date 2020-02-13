@@ -4,25 +4,24 @@ import android.content.Context
 import androidx.annotation.StringRes
 
 sealed class ErrorFeedback {
-    abstract fun getMessage(context: Context?): String?
+    abstract fun getMessage(): String
 
-    data class DatabaseErrorFeedback(val message: String?): ErrorFeedback() {
-        override fun getMessage(context: Context?): String? = message
+    object DatabaseErrorFeedback : ErrorFeedback() {
+        override fun getMessage(): String = "data base error"
     }
-    data class ApiNotReachErrorFeedback(val message: String?): ErrorFeedback() {
-        override fun getMessage(context: Context?): String? = message
+    object ApiNotReachErrorFeedback: ErrorFeedback() {
+        override fun getMessage(): String = "api not reach"
     }
-    data class ApiErrorFeedback(val message: String?, val code: Int): ErrorFeedback() {
-        override fun getMessage(context: Context?): String? = message
+    object ApiErrorFeedback: ErrorFeedback() {
+        override fun getMessage(): String = "api error"
     }
-    data class ApplicationErrorFeedback(@StringRes val resId: Int) : ErrorFeedback() {
-        override fun getMessage(context: Context?): String? = context?.getString(resId)
+    object ApplicationErrorFeedback : ErrorFeedback() {
+        override fun getMessage(): String = "app error"
     }
 }
 
-class DatabaseNotReachException: RuntimeException("db not reach")
-class ApiNotReachException: RuntimeException("api not reach")
-class BadRequestException(msg: String?): RuntimeException("bad request:$msg")
-class BadBookStateException: RuntimeException("bad state of book")
-// todo いい名前つける
-class InternalErrorException: RuntimeException("internal server error")
+data class DatabaseNotReachException(val msg: String?): RuntimeException("database not reach: $msg")
+data class ApiNotReachException(val msg: String?): RuntimeException("api not reach: $msg")
+data class BadRequestException(val msg: String?): RuntimeException("bad request: $msg")
+data class BadBookStateException(val msg: String?): RuntimeException("bad state of book: $msg")
+data class ApplicationErrorException(val msg: String?): RuntimeException("application error: $msg")

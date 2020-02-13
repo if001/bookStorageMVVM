@@ -12,6 +12,7 @@ import net.edgwbs.bookstorage.repositories.db.PublisherSchema
 import net.edgwbs.bookstorage.utils.ApiNotReachException
 import net.edgwbs.bookstorage.utils.BadRequestException
 import net.edgwbs.bookstorage.utils.ErrorFeedback
+import java.net.ConnectException
 
 class BookBoundaryCallback(
     private val scope: CoroutineScope,
@@ -38,7 +39,7 @@ class BookBoundaryCallback(
             callApiAsync(1, perPage, query)
                 .await()
                 .onSuccess {
-                    Log.d("tag", it.toString())
+                    Log.d("tag1", it.toString())
                     it?.let{ b -> totalCount = b.content.total_count }
                     kotlin.runCatching {
                         withContext(scope.coroutineContext) {
@@ -48,7 +49,7 @@ class BookBoundaryCallback(
                     }.onSuccess {
                         nextPage += 1
                     }.onFailure {
-                        errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback(it.toString()))
+                        errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback)
                     }
                 }
         }
@@ -70,77 +71,79 @@ class BookBoundaryCallback(
                     it?.let{ b -> totalCount = b.content.total_count }
                     kotlin.runCatching {
                         withContext(scope.coroutineContext) {
+                            Log.d("tag1", nextPage.toString())
                             insertAuthorPublisher(it)
                             insertBook(it)
-                            Log.d("tag", nextPage.toString())
                         }
                     }.onSuccess {
                         nextPage += 1
                     }.onFailure {
-                        errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback(it.toString()))
+                        errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback)
                     }
                 }
         }
     }
 
     private fun insertAuthorPublisher(response: BookResponse<PaginateBook>?) {
-            response?.let {
-                it.content.books.forEach { book ->
-                    book.author?.let { ele ->
-                        scope.launch(Dispatchers.IO) {
-                            authorsDB.find(ele.id) ?: {
-                                scope.launch(Dispatchers.IO) {
-                                    val new = AuthorSchema(
-                                        ele.id,
+        response?.let {
+            it.content.books.forEach { book ->
+                book.author?.let { ele ->
+                    scope.launch(Dispatchers.IO) {
+                        Log.d("tag", "insert author")
+                        authorsDB.find(ele.id) ?: {
+                            scope.launch(Dispatchers.IO) {
+                                val new = AuthorSchema(
+                                    ele.id,
+                                    ele.name
+                                )
+                                authorsDB.insert(listOf(new))
+                            }
+                        }()
+                    }
+                }
+                book.publisher?.let { ele ->
+                    scope.launch(Dispatchers.IO) {
+                        Log.d("tag", "insert publisher")
+                        publishersDB.find(ele.id) ?: {
+                            scope.launch(Dispatchers.IO) {
+                                val new =
+                                    PublisherSchema(
+                                            ele.id,
                                         ele.name
                                     )
-                                    authorsDB.insert(listOf(new))
-                                }
-                            }()
-                        }
-                    }
-                    book.publisher?.let { ele ->
-                        scope.launch(Dispatchers.IO) {
-                            publishersDB.find(ele.id) ?: {
-                                scope.launch(Dispatchers.IO) {
-                                    val new =
-                                        PublisherSchema(
-                                            ele.id,
-                                            ele.name
-                                        )
-                                    publishersDB.insert(listOf(new))
-                                }
-                            }()
-                        }
+                                publishersDB.insert(listOf(new))
+                            }
+                        }()
                     }
                 }
             }
+        }
     }
 
 
     private fun insertBook(response: BookResponse<PaginateBook>?) {
         response?.let {
-            val b = it.content.books.map{ book ->
-                BookSchema(
-                    book.id,
-                    book.accountId,
-                    book.title,
-                    book.author?.id,
-                    book.publisher?.id,
-                    book.isbn,
-                    book.smallImageUrl,
-                    book.mediumImageUrl,
-                    book.readState,
-                    book.startAt,
-                    book.endAt,
-                    book.AffiliateUrl,
-                    book.createdAt,
-                    book.updatedAt
-                )
-            }
             scope.launch(Dispatchers.IO) {
-                Log.d("tag", b.toString())
                 Log.d("tag", "insert book!!!!!")
+                val b = it.content.books.map{ book ->
+                    BookSchema(
+                        book.id,
+                        book.accountId,
+                        book.title,
+                        book.author?.id,
+                        book.publisher?.id,
+                        book.isbn,
+                        book.smallImageUrl,
+                        book.mediumImageUrl,
+                        book.readState,
+                        book.startAt,
+                        book.endAt,
+                        book.AffiliateUrl,
+                        book.createdAt,
+                        book.updatedAt
+                    )
+                }
+                Log.d("tag", b.toString())
                 booksDB.insert(b)
             }
         }
@@ -163,11 +166,10 @@ class BookBoundaryCallback(
             }
         }.onFailure {
             Log.d("tag", it.toString())
-            when(it) {
-                ApiNotReachException() ->
-                    errorFeedbackHandler.postValue(ErrorFeedback.ApiNotReachErrorFeedback(it.toString()))
-                else ->
-                    errorFeedbackHandler.postValue(ErrorFeedback.ApiErrorFeedback(it.toString(), 500))
+            if (it is ConnectException){
+                errorFeedbackHandler.postValue(ErrorFeedback.ApiNotReachErrorFeedback)
+            } else {
+                errorFeedbackHandler.postValue(ErrorFeedback.ApiErrorFeedback)
             }
             networkState.postValue(NetworkState.FAILED)
         }.also {

@@ -3,7 +3,10 @@ package net.edgwbs.bookstorage.model.db
 
 import androidx.paging.DataSource
 import androidx.room.*
-import net.edgwbs.bookstorage.model.BookListQuery
+import net.edgwbs.bookstorage.repositories.db.AuthorSchema
+import net.edgwbs.bookstorage.repositories.db.BookSchema
+import net.edgwbs.bookstorage.repositories.db.BookWithInfoSchema
+import net.edgwbs.bookstorage.repositories.db.PublisherSchema
 
 
 @Dao

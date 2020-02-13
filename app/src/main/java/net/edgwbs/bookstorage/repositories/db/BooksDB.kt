@@ -4,6 +4,9 @@ package net.edgwbs.bookstorage.repositories.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import net.edgwbs.bookstorage.model.db.AuthorsDao
+import net.edgwbs.bookstorage.model.db.BooksDao
+import net.edgwbs.bookstorage.model.db.PublishersDao
 
 
 @Database(
