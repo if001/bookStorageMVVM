@@ -1,6 +1,7 @@
 package net.edgwbs.bookstorage.model.db
 
 
+import androidx.annotation.Nullable
 import androidx.paging.DataSource
 import androidx.room.*
 import net.edgwbs.bookstorage.repositories.db.AuthorSchema
@@ -36,10 +37,10 @@ interface BooksDao {
     @Query("SELECT * FROM books Where books.readState == :state ORDER BY updatedAt DESC")
     fun findByState2(state: Int): List<BookWithInfoSchema>
 
-    @Query("SELECT * FROM books Where books.id == :id")
-    fun findByID(id: Long?) : BookSchema
-
     @Transaction
+    @Query("SELECT * FROM books Where books.id == :id")
+    fun findByID(id: Long?) : BookWithInfoSchema?
+
     @Query("SELECT * FROM books " +
             "LEFT OUTER JOIN authors ON author_id == authors.id " +
             "LEFT OUTER JOIN publishers ON publisher_id == publishers.id " +
@@ -49,7 +50,6 @@ interface BooksDao {
             "ORDER BY books.updatedAt DESC")
     fun findByBookInfo(book: String?): DataSource.Factory<Int, BookWithInfoSchema>
 
-    @Transaction
     @Query("SELECT * FROM books " +
             "LEFT OUTER JOIN authors ON author_id == authors.id " +
             "LEFT OUTER JOIN publishers ON publisher_id == publishers.id " +

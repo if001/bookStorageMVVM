@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookDetailBinding
@@ -26,44 +27,10 @@ class BookDetailFragment : Fragment() {
         ViewModelProviders.of(this).get(BookViewModel::class.java)
     }
     private lateinit var binding: FragmentBookDetailBinding
-    private lateinit var job: Job
     private var bookIDLong: Long? = null
     private val errorFeedbackHandler = MutableLiveData<ErrorFeedback>()
-
-    private val loadBookCallback = object: RequestCallback {
-        override fun <Book>onRequestSuccess(r: Book?) {
-        }
-
-        override fun onRequestFail() {
-            toPrevPage()
-        }
-
-        override fun onFail(e: HandelError) {
-            toPrevPage()
-        }
-
-        override fun onFinal() {
-            Thread.sleep(2000)
-        }
-    }
-
-//    private val changeStateCallback = object: RequestCallback {
-//        override fun <Book> onRequestSuccess(r: Book?) {
-//        }
-//
-//        override fun onRequestFail() {
-//            // toPrevPage()
-//        }
-//
-//        override fun onFail(e: HandelError) {
-//            // toPrevPage()
-//        }
-//
-//        override fun onFinal() {
-//            Thread.sleep(2000)
-//            binding.isStateChangeLoading = false
-//        }
-//    }
+    private val loadState: MutableLiveData<LoadState> = MutableLiveData()
+    private val bookStateLoadState: MutableLiveData<LoadState> = MutableLiveData()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -84,7 +51,8 @@ class BookDetailFragment : Fragment() {
 
         bookIDLong = bookID?.toLongOrNull()
         if (bookIDLong != null) {
-            job = viewModel.loadBook(bookIDLong!!, loadBookCallback)
+            Log.d("tag", "id!!!!!!!!!!!!!," + bookID)
+            viewModel.loadBook(bookIDLong!!, errorFeedbackHandler, loadState, bookStateLoadState)
         } else {
             toPrevPage()
         }
@@ -105,19 +73,57 @@ class BookDetailFragment : Fragment() {
                     if (book != null) {
                         binding.bookStateIcon.setOnClickListener{
                             binding.isStateChangeLoading = true
-                            viewModel.changeState(book, errorFeedbackHandler)
+                            viewModel.changeState(book, errorFeedbackHandler, bookStateLoadState)
                         }
-                        job = viewModel.loadBook(bookIDLong!!, loadBookCallback)
                         binding.book = book
-                        binding.isLoading = false
-                        binding.isStateChangeLoading = false
                     }
                 })
         }
+        loadState.observe(
+            viewLifecycleOwner,
+            Observer {
+                binding.isLoading = when(it){
+                    LoadState.Loaded -> false
+                    LoadState.Loading -> true
+                    else -> false
+                }
+            }
+        )
+        bookStateLoadState.observe(
+            viewLifecycleOwner,
+            Observer {
+                binding.isStateChangeLoading = when(it){
+                    LoadState.Loaded -> false
+                    LoadState.Loading -> true
+                    else -> false
+                }
+            }
+        )
+        errorFeedbackHandler.observe(
+            viewLifecycleOwner,
+            Observer { feedback ->
+                // Log.d("tag", n.getMessage(context).toString())
+                val snackbarTime = when(feedback) {
+                    ErrorFeedback.ApiNotReachErrorFeedback -> {
+                        Snackbar.LENGTH_INDEFINITE
+                    }
+                    else -> Snackbar.LENGTH_LONG
+                }
+                feedback?.let{
+                    Snackbar.make(binding.root, it.getMessage(), snackbarTime).show()
+                }
+            }
+        )
     }
 
     private fun toPrevPage() {
-        if(::job.isInitialized) job.cancel()
+        viewModel.cancelJob()
         fragmentManager?.popBackStack()
     }
+}
+
+
+enum class LoadState{
+    Loading,
+    Loaded
 }

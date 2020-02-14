@@ -1,5 +1,6 @@
 package net.edgwbs.bookstorage.viewModel
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -9,15 +10,19 @@ import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
 import net.edgwbs.bookstorage.utils.ApplicationErrorException
 import net.edgwbs.bookstorage.utils.BadRequestException
 import net.edgwbs.bookstorage.utils.ErrorFeedback
+import net.edgwbs.bookstorage.view.LoadState
+import java.net.ConnectException
 
 object BookModelCommon {
     fun changeState(book: Book, scope: CoroutineScope,
                     bookRepositoryFactory: BookRepositoryFactory,
-                    errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
+                    errorFeedbackHandler: MutableLiveData<ErrorFeedback>,
+                    loadState: MutableLiveData<LoadState>) {
         val booksAPI = bookRepositoryFactory.getAPI()
         val booksDB = bookRepositoryFactory.getDB()
 
         scope.launch(Dispatchers.IO) {
+            loadState.postValue(LoadState.Loading)
             val result = kotlin.runCatching {
                 val response = when (book.readState) {
                     ReadState.NotRead.value -> booksAPI.bookReadStart(book.id)
@@ -25,8 +30,7 @@ object BookModelCommon {
                     ReadState.Read.value -> booksAPI.bookReadStart(book.id)
                     else -> null
                 } ?: throw ApplicationErrorException("bad book state")
-
-                if (response.body() !== null){
+                if (response.body() == null){
                     throw ApplicationErrorException("response body null")
                 } else {
                     if (!response.isSuccessful) {
@@ -42,11 +46,19 @@ object BookModelCommon {
                         kotlin.runCatching {
                             booksDB.booksDao().update(updatedBook.toSchema())
                         }.onFailure {th ->
+                            Log.d("tag", th.toString())
                             errorFeedbackHandler.postValue(ErrorFeedback.DatabaseErrorFeedback)
                         }
                     }
             }.onFailure {
-                errorFeedbackHandler.postValue(ErrorFeedback.ApiNotReachErrorFeedback)
+                Log.d("tag", it.toString())
+                if (it is ConnectException){
+                    errorFeedbackHandler.postValue(ErrorFeedback.ApiNotReachErrorFeedback)
+                } else {
+                    errorFeedbackHandler.postValue(ErrorFeedback.ApiErrorFeedback)
+                }
+            }.also{
+                loadState.postValue(LoadState.Loaded)
             }
         }
     }

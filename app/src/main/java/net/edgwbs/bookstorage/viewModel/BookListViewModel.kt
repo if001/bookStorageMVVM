@@ -13,6 +13,7 @@ import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
 import net.edgwbs.bookstorage.repositories.db.BooksDB
 import net.edgwbs.bookstorage.repositories.api.BookRepository
 import net.edgwbs.bookstorage.utils.ErrorFeedback
+import net.edgwbs.bookstorage.view.LoadState
 
 class BookListViewModel(application: Application): AndroidViewModel(application) {
     private val perPage: Int = 10
@@ -47,8 +48,11 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
 
     fun getLiveData(): LiveData<PagedList<Book>> = bookPagedList
 
-    fun changeState(book: Book, errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
-        return BookModelCommon.changeState(book, viewModelScope, booksRepository, errorFeedbackHandler)
+    fun changeState(book: Book,
+                    errorFeedbackHandler: MutableLiveData<ErrorFeedback>,
+                    loadState: MutableLiveData<LoadState>) {
+        return BookModelCommon.changeState(book, viewModelScope,
+            booksRepository, errorFeedbackHandler, loadState)
     }
 
     fun refreshData() {

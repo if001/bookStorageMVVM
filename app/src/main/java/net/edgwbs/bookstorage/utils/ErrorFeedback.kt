@@ -15,8 +15,11 @@ sealed class ErrorFeedback {
     object ApiErrorFeedback: ErrorFeedback() {
         override fun getMessage(): String = "api error"
     }
-    object ApplicationErrorFeedback : ErrorFeedback() {
+    object ApplicationErrorFeedback: ErrorFeedback() {
         override fun getMessage(): String = "app error"
+    }
+    object DataNotFoundErrorFeedback: ErrorFeedback() {
+        override fun getMessage(): String = "data not found"
     }
 }
 

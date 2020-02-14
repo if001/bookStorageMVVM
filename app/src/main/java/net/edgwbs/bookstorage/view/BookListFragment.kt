@@ -59,6 +59,7 @@ class BookListFragment : Fragment() {
     var bookListQuery: BookListQuery =
         BookListQuery(null, null)
     private val errorFeedbackHandler = MutableLiveData<ErrorFeedback>()
+    private val loadState: MutableLiveData<LoadState> = MutableLiveData()
 
     private val bookClickCallback = object: BookClickCallback {
         override fun onClick(book: Book) {
@@ -271,7 +272,7 @@ class BookListFragment : Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val book = adapter.getItemByPosition(viewHolder.adapterPosition)
                 book?.let {
-                    viewModel.changeState(it, errorFeedbackHandler)
+                    viewModel.changeState(it, errorFeedbackHandler, loadState)
                     viewModel.refreshData()
                     adapter.notifyDataSetChanged()
                 }

@@ -103,6 +103,7 @@ class BookWithInfoSchema {
 @Entity(tableName = "authors")
 data class AuthorSchema(
     @PrimaryKey
+    @ColumnInfo(name = "id")
     val id: Long,
     @ColumnInfo(name = "author_name")
     val name: String = "not set"
@@ -115,6 +116,7 @@ data class AuthorSchema(
 @Entity(tableName = "publishers")
 data class PublisherSchema(
     @PrimaryKey
+    @ColumnInfo(name = "id")
     val id: Long,
     @ColumnInfo(name = "publisher_name")
     val name: String = "not set"

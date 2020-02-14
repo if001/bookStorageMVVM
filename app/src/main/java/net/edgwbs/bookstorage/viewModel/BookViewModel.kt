@@ -1,49 +1,64 @@
 package net.edgwbs.bookstorage.viewModel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.edgwbs.bookstorage.model.Book
-import net.edgwbs.bookstorage.repositories.api.BookRepository
-import net.edgwbs.bookstorage.model.HandelError
 import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
+import net.edgwbs.bookstorage.repositories.api.BookRepository
 import net.edgwbs.bookstorage.utils.ErrorFeedback
+import net.edgwbs.bookstorage.view.LoadState
 
 class BookViewModel(application: Application): AndroidViewModel(application) {
-    private val repository: BookRepository = BookRepository.instance
     private var bookLiveData: MutableLiveData<Book> = MutableLiveData()
     private val booksRepository: BookRepositoryFactory = BookRepositoryFactory.build(application)
 
     fun getLiveData(): MutableLiveData<Book> = bookLiveData
 
-    fun loadBook(id: Long, requestCallback: RequestCallback): Job {
-        return viewModelScope.launch {
-            val result = kotlin.runCatching {
-                val response = repository.findBook(id)
-                if (response.isSuccessful) {
-                    response.body()?.let {
-                        bookLiveData.postValue(it.content)
-                    }
-                    requestCallback.onRequestSuccess(response.body())
+    fun loadBook(id: Long,
+                 errorFeedbackHandler: MutableLiveData<ErrorFeedback>,
+                 loadState: MutableLiveData<LoadState>,
+                 bookStateLoadState: MutableLiveData<LoadState>
+                 ) {
+        viewModelScope.launch {
+            Log.d("tag", "load!!!!")
+            loadState.postValue(LoadState.Loading)
+            kotlin.runCatching {
+                withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
+                    booksRepository.getDB().booksDao().findByID(id)
+                }
+            }.onSuccess {
+                Log.d("tag", "success!!!")
+                if (it != null){
+                    Log.d("tag", it.toModel().toString())
+                    bookLiveData.postValue(it.toModel())
                 } else {
-                    // response.errorBody()
-                    requestCallback.onFail(HandelError.apiError)
+                    errorFeedbackHandler.postValue(ErrorFeedback.DataNotFoundErrorFeedback)
                 }
+            }.onFailure {
+                errorFeedbackHandler.postValue(ErrorFeedback.DataNotFoundErrorFeedback)
+            }.also {
+                loadState.postValue(LoadState.Loaded)
+                bookStateLoadState.postValue(LoadState.Loaded)
             }
-            result
-                .onFailure {
-                    requestCallback.onRequestFail()
-                }
-                .also {
-                    requestCallback.onFinal()
-                }
         }
     }
 
-    fun changeState(book: Book, errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
-        return BookModelCommon.changeState(book, viewModelScope, booksRepository, errorFeedbackHandler)
+    fun changeState(book: Book,
+                    errorFeedbackHandler: MutableLiveData<ErrorFeedback>,
+                    bookStateLoadState: MutableLiveData<LoadState>) {
+        return BookModelCommon.changeState(book, viewModelScope,
+            booksRepository, errorFeedbackHandler, bookStateLoadState)
+    }
+
+    fun cancelJob() {
+        viewModelScope.cancel()
     }
 }
+
