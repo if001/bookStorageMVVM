@@ -43,7 +43,7 @@ class BookDetailFragment : Fragment() {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_book_detail, container, false)
 
         binding.isLoading = true
-        binding.isStateChangeLoading = true
+        binding.isStateChangeLoading = false
 
         binding.backButton.setOnClickListener {
             toPrevPage()
@@ -52,7 +52,7 @@ class BookDetailFragment : Fragment() {
         bookIDLong = bookID?.toLongOrNull()
         if (bookIDLong != null) {
             Log.d("tag", "id!!!!!!!!!!!!!," + bookID)
-            viewModel.loadBook(bookIDLong!!, errorFeedbackHandler, loadState, bookStateLoadState)
+            viewModel.loadBook(bookIDLong!!, errorFeedbackHandler, loadState)
         } else {
             toPrevPage()
         }
@@ -93,10 +93,14 @@ class BookDetailFragment : Fragment() {
             viewLifecycleOwner,
             Observer {
                 binding.isStateChangeLoading = when(it){
-                    LoadState.Loaded -> false
+                    LoadState.Loaded -> {
+                        viewModel.loadBook(bookIDLong!!, errorFeedbackHandler, loadState)
+                        false
+                    }
                     LoadState.Loading -> true
                     else -> false
                 }
+
             }
         )
         errorFeedbackHandler.observe(

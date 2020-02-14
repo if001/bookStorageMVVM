@@ -23,9 +23,7 @@ class BookViewModel(application: Application): AndroidViewModel(application) {
 
     fun loadBook(id: Long,
                  errorFeedbackHandler: MutableLiveData<ErrorFeedback>,
-                 loadState: MutableLiveData<LoadState>,
-                 bookStateLoadState: MutableLiveData<LoadState>
-                 ) {
+                 loadState: MutableLiveData<LoadState>) {
         viewModelScope.launch {
             Log.d("tag", "load!!!!")
             loadState.postValue(LoadState.Loading)
@@ -45,7 +43,6 @@ class BookViewModel(application: Application): AndroidViewModel(application) {
                 errorFeedbackHandler.postValue(ErrorFeedback.DataNotFoundErrorFeedback)
             }.also {
                 loadState.postValue(LoadState.Loaded)
-                bookStateLoadState.postValue(LoadState.Loaded)
             }
         }
     }
@@ -53,7 +50,7 @@ class BookViewModel(application: Application): AndroidViewModel(application) {
     fun changeState(book: Book,
                     errorFeedbackHandler: MutableLiveData<ErrorFeedback>,
                     bookStateLoadState: MutableLiveData<LoadState>) {
-        return BookModelCommon.changeState(book, viewModelScope,
+         BookModelCommon.changeState(book, viewModelScope,
             booksRepository, errorFeedbackHandler, bookStateLoadState)
     }
 
