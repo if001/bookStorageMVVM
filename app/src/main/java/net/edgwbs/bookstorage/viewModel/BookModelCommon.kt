@@ -18,8 +18,8 @@ object BookModelCommon {
                     bookRepositoryFactory: BookRepositoryFactory,
                     errorFeedbackHandler: MutableLiveData<ErrorFeedback>,
                     loadState: MutableLiveData<LoadState>) {
-        val booksAPI = bookRepositoryFactory.getAPI()
-        val booksDB = bookRepositoryFactory.getDB()
+        val booksAPI = bookRepositoryFactory.api
+        val booksDB = bookRepositoryFactory.db
 
         scope.launch(Dispatchers.IO) {
             loadState.postValue(LoadState.Loading)

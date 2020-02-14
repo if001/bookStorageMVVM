@@ -17,7 +17,7 @@ import net.edgwbs.bookstorage.view.LoadState
 
 class BookViewModel(application: Application): AndroidViewModel(application) {
     private var bookLiveData: MutableLiveData<Book> = MutableLiveData()
-    private val booksRepository: BookRepositoryFactory = BookRepositoryFactory.build(application)
+    private val booksRepository: BookRepositoryFactory = BookRepositoryFactory.getInstance(application)
 
     fun getLiveData(): MutableLiveData<Book> = bookLiveData
 
@@ -29,7 +29,7 @@ class BookViewModel(application: Application): AndroidViewModel(application) {
             loadState.postValue(LoadState.Loading)
             kotlin.runCatching {
                 withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
-                    booksRepository.getDB().booksDao().findByID(id)
+                    booksRepository.db.booksDao().findByID(id)
                 }
             }.onSuccess {
                 Log.d("tag", "success!!!")

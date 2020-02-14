@@ -18,7 +18,7 @@ import net.edgwbs.bookstorage.view.LoadState
 class BookListViewModel(application: Application): AndroidViewModel(application) {
     private val perPage: Int = 10
     // todo コネクションプールどうなってんの??????
-    private val booksRepository: BookRepositoryFactory = BookRepositoryFactory.build(application)
+    private val booksRepository: BookRepositoryFactory = BookRepositoryFactory.getInstance(application)
 
     private lateinit var bookPagedList: LiveData<PagedList<Book>>
     // todo loadingstateに変更する

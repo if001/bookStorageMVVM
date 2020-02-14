@@ -154,7 +154,7 @@ class BookDataSource(private val scope: CoroutineScope,
 
 
 class BookDataSourceFactory(bookRepository: BookRepositoryFactory):DataSource.Factory<Int, Book>() {
-    private val booksDB = bookRepository.getDB()
+    private val booksDB = bookRepository.db
     var query: BookListQuery =
         BookListQuery(null, null)
     var source: DataSource<Int, Book>? = null

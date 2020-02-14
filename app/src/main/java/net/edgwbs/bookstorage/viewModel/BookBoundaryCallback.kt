@@ -21,10 +21,10 @@ class BookBoundaryCallback(
     private val perPage: Int,
     private val errorFeedbackHandler: MutableLiveData<ErrorFeedback>
 ): PagedList.BoundaryCallback<Book>() {
-    private val booksDB = bookRepositoryFactory.getDB().booksDao()
-    private val authorsDB = bookRepositoryFactory.getDB().authorsDao()
-    private val publishersDB = bookRepositoryFactory.getDB().publishersDao()
-    private val booksAPI = bookRepositoryFactory.getAPI()
+    private val booksDB = bookRepositoryFactory.db.booksDao()
+    private val authorsDB = bookRepositoryFactory.db.authorsDao()
+    private val publishersDB = bookRepositoryFactory.db.publishersDao()
+    private val booksAPI = bookRepositoryFactory.api
     var nextPage = 1
     var totalCount: Long = -1
     var query = BookListQuery(null, null)
