@@ -94,6 +94,12 @@ dependencies {
     implementation "io.arrow-kt:arrow-syntax:$rootProject.ext.arrow_version"
     kapt    "io.arrow-kt:arrow-meta:$rootProject.ext.arrow_version"
 
+    // Dagger
+    implementation 'com.google.dagger:dagger:2.21'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.21'
+    kapt "com.google.dagger:dagger-compiler:2.21"
+    kaptTest "com.google.dagger:dagger-compiler:2.21"
+
     // fontawesome
     implementation 'info.androidhive:fontawesome:0.0.5'
 

@@ -54,6 +54,7 @@ class BookListFragment : Fragment() {
     private val viewModel:BookListViewModel by lazy {
         ViewModelProviders.of(this).get(BookListViewModel::class.java)
     }
+
     private lateinit var binding: FragmentBookListMainBinding
     private lateinit var adapter: BookListAdapter
     var bookListQuery: BookListQuery =

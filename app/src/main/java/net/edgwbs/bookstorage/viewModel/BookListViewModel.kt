@@ -8,17 +8,27 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import kotlinx.coroutines.*
+import net.edgwbs.bookstorage.di.BookRepositoryComponent
+import net.edgwbs.bookstorage.di.BookRepositoryModule
 import net.edgwbs.bookstorage.model.*
 import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
 import net.edgwbs.bookstorage.repositories.db.BooksDB
 import net.edgwbs.bookstorage.repositories.api.BookRepository
 import net.edgwbs.bookstorage.utils.ErrorFeedback
 import net.edgwbs.bookstorage.view.LoadState
+import javax.inject.Inject
 
-class BookListViewModel(application: Application): AndroidViewModel(application) {
+class BookListViewModel @Inject constructor(application: Application): AndroidViewModel(application) {
     private val perPage: Int = 10
-    // todo コネクションプールどうなってんの??????
-    private val booksRepository: BookRepositoryFactory = BookRepositoryFactory.getInstance(application)
+    // private val booksRepository: BookRepositoryFactory = BookRepositoryFactory.getInstance(application)
+    @Inject lateinit var booksRepository: BookRepositoryFactory
+    private val component = BookRepositoryComponent.builder()
+        .repositoryModule(BookRepositoryModule())
+        .build()
+
+    init {
+        this.component.inject(this)
+    }
 
     private lateinit var bookPagedList: LiveData<PagedList<Book>>
     // todo loadingstateに変更する
