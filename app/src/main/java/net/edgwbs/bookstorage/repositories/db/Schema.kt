@@ -1,6 +1,7 @@
 package net.edgwbs.bookstorage.repositories.db
 
 
+import androidx.annotation.Nullable
 import androidx.room.*
 import net.edgwbs.bookstorage.model.Author
 import net.edgwbs.bookstorage.model.Book
@@ -12,12 +13,12 @@ import java.util.*
     foreignKeys = [
         ForeignKey(
             entity = AuthorSchema::class,
-            parentColumns = arrayOf("id"),
+            parentColumns = arrayOf("_author_id"),
             childColumns = arrayOf("author_id")
         ),
         ForeignKey(
             entity = PublisherSchema::class,
-            parentColumns = arrayOf("id"),
+            parentColumns = arrayOf("_publisher_id"),
             childColumns = arrayOf("publisher_id")
         )
     ],
@@ -71,14 +72,22 @@ data class BookSchema(
     }
 }
 
-class BookWithInfoSchema {
+class BookWithInfoSchema{
     @Embedded
     lateinit var book: BookSchema
 
-    @Relation(parentColumn = "author_id", entityColumn = "id")
+    @Embedded
+    @Nullable
     var authorSchema: AuthorSchema? = null
-    @Relation(parentColumn = "publisher_id", entityColumn = "id")
+
+    @Embedded
+    @Nullable
     var publisherSchema: PublisherSchema? = null
+
+//    @Relation(parentColumn = "author_id", entityColumn = "id")
+//    var authorSchema: AuthorSchema? = null
+//    @Relation(parentColumn = "publisher_id", entityColumn = "id")
+//    var publisherSchema: PublisherSchema? = null
 
     fun toModel(): Book {
         return Book(
@@ -103,9 +112,9 @@ class BookWithInfoSchema {
 @Entity(tableName = "authors")
 data class AuthorSchema(
     @PrimaryKey
-    @ColumnInfo(name = "id")
+    @ColumnInfo(name = "_author_id")
     val id: Long,
-    @ColumnInfo(name = "author_name")
+    @ColumnInfo(name = "_author_name")
     val name: String = "not set"
 ){
     fun toModel(): Author {
@@ -116,9 +125,9 @@ data class AuthorSchema(
 @Entity(tableName = "publishers")
 data class PublisherSchema(
     @PrimaryKey
-    @ColumnInfo(name = "id")
+    @ColumnInfo(name = "_publisher_id")
     val id: Long,
-    @ColumnInfo(name = "publisher_name")
+    @ColumnInfo(name = "_publisher_name")
     val name: String = "not set"
 ){
     fun toModel(): Publisher {
