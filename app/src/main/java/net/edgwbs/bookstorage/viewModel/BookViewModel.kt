@@ -11,9 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.edgwbs.bookstorage.model.Book
 import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
-import net.edgwbs.bookstorage.repositories.api.BookRepository
 import net.edgwbs.bookstorage.utils.ErrorFeedback
-import net.edgwbs.bookstorage.view.LoadState
 
 class BookViewModel(application: Application): AndroidViewModel(application) {
     private var bookLiveData: MutableLiveData<Book> = MutableLiveData()

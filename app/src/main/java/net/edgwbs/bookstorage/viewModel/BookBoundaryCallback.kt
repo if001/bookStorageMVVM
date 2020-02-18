@@ -17,9 +17,9 @@ import java.net.ConnectException
 class BookBoundaryCallback(
     private val scope: CoroutineScope,
     bookRepositoryFactory: BookRepositoryFactory,
-    private val networkState: MutableLiveData<NetworkState>,
     private val perPage: Int,
-    private val errorFeedbackHandler: MutableLiveData<ErrorFeedback>
+    private val errorFeedbackHandler: MutableLiveData<ErrorFeedback>,
+    private val loadState: MutableLiveData<LoadState>
 ): PagedList.BoundaryCallback<Book>() {
     private val booksDB = bookRepositoryFactory.db.booksDao()
     private val authorsDB = bookRepositoryFactory.db.authorsDao()
@@ -156,10 +156,9 @@ class BookBoundaryCallback(
 
     private suspend fun callApiAsync(page: Int, perPage:Int, query: BookListQuery) = scope.async {
         kotlin.runCatching {
-            networkState.postValue(NetworkState.RUNNING)
+            loadState.postValue(LoadState.Loading)
             val response = booksAPI.getBooks(page, perPage, query.getStateStr(), query.book)
             if (response.isSuccessful) {
-                networkState.postValue(NetworkState.SUCCESS)
                 response.body()
             } else {
                 throw BadRequestException(response.errorBody()?.toString())
@@ -171,9 +170,8 @@ class BookBoundaryCallback(
             } else {
                 errorFeedbackHandler.postValue(ErrorFeedback.ApiErrorFeedback)
             }
-            networkState.postValue(NetworkState.FAILED)
         }.also {
-            networkState.postValue(NetworkState.NOTWORK)
+            loadState.postValue(LoadState.Loaded)
         }
     }
 

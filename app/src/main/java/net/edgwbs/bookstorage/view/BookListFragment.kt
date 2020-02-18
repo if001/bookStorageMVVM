@@ -19,6 +19,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -47,10 +48,9 @@ import net.edgwbs.bookstorage.utils.ErrorFeedback
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookListQuery
 import net.edgwbs.bookstorage.viewModel.BookListViewModel
-import net.edgwbs.bookstorage.viewModel.NetworkState
 import net.edgwbs.bookstorage.viewModel.RequestCallback
 
-class BookListFragment : Fragment() {
+class BookListFragment : BaseFragment() {
     private val viewModel:BookListViewModel by lazy {
         ViewModelProviders.of(this).get(BookListViewModel::class.java)
     }
@@ -58,8 +58,9 @@ class BookListFragment : Fragment() {
     private lateinit var adapter: BookListAdapter
     var bookListQuery: BookListQuery =
         BookListQuery(null, null)
-    private val errorFeedbackHandler = MutableLiveData<ErrorFeedback>()
-    private val loadState: MutableLiveData<LoadState> = MutableLiveData()
+
+    // private val errorFeedbackHandler = MutableLiveData<ErrorFeedback>()
+    // private val loadState: MutableLiveData<LoadState> = MutableLiveData()
 
     private val bookClickCallback = object: BookClickCallback {
         override fun onClick(book: Book) {
@@ -79,12 +80,20 @@ class BookListFragment : Fragment() {
         }
     }
 
+    override fun layoutId() = R.layout.fragment_book_list_main
+    override fun lifecycleOwner() = viewLifecycleOwner
+    override fun setBool(b: Boolean) {
+        binding.isLoading = b
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_book_list_main, container, false)
+        // binding = DataBindingUtil.inflate(inflater, R.layout.fragment_book_list_main, container, false)
+        super.onCreateView(inflater, container, savedInstanceState)
+        binding = super.getBinding() as FragmentBookListMainBinding
 
         binding.isLoading = true
 
@@ -93,7 +102,7 @@ class BookListFragment : Fragment() {
         initFab(binding.bookRegisterFab, context)
         initSearchBox()
 
-        viewModel.createDataSource(errorFeedbackHandler)
+        viewModel.createDataSource(errorFeedbackHandler, loadState)
 
         binding.bookListContent.searchBar.bookListSearchView.isSubmitButtonEnabled = true
 
@@ -130,38 +139,23 @@ class BookListFragment : Fragment() {
                     binding.isLoading = false
                 }
             })
+//
+//        viewModel.networkState.observe(
+//            viewLifecycleOwner,
+//            Observer { n ->
+//                when(n) {
+//                    NetworkState.RUNNING -> {
+//                        binding.isLoading = true
+//                    }
+//                    NetworkState.NOTWORK -> {
+//                        binding.isLoading = false
+//                    }
+//                    else -> binding.isLoading = false
+//                }
+//                Log.d("debug", "--------------"+n.name)
+//            }
+//        )
 
-        viewModel.networkState.observe(
-            viewLifecycleOwner,
-            Observer { n ->
-                when(n) {
-                    NetworkState.RUNNING -> {
-                        binding.isLoading = true
-                    }
-                    NetworkState.NOTWORK -> {
-                        binding.isLoading = false
-                    }
-                    else -> binding.isLoading = false
-                }
-                Log.d("debug", "--------------"+n.name)
-            }
-        )
-
-        errorFeedbackHandler.observe(
-            viewLifecycleOwner,
-            Observer { feedback ->
-                // Log.d("tag", n.getMessage(context).toString())
-                val snackbarTime = when(feedback) {
-                    ErrorFeedback.ApiNotReachErrorFeedback -> {
-                        Snackbar.LENGTH_INDEFINITE
-                    }
-                    else -> Snackbar.LENGTH_LONG
-                }
-                feedback?.let{
-                    Snackbar.make(binding.root, it.getMessage(), snackbarTime).show()
-                }
-            }
-        )
 //        searchBoxText.observe(
 //            viewLifecycleOwner,
 //            Observer { text ->

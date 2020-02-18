@@ -82,7 +82,7 @@
                         android:layout_marginLeft="30dp"
                         android:layout_marginTop="10dp"
                         android:layout_marginRight="30dp"
-                        android:textSize="12sp"
+                        android:textSize="14sp"
                         android:hint="Title"
                         android:inputType="text"
                         android:text="@={title}" />
@@ -92,7 +92,7 @@
                         android:layout_height="40dp"
                         android:layout_marginLeft="30dp"
                         android:layout_marginRight="30dp"
-                        android:textSize="12sp"
+                        android:textSize="14sp"
                         android:hint="Author"
                         android:inputType="text"
                         android:text="@={author}" />

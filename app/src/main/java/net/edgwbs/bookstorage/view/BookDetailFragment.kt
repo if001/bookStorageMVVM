@@ -5,32 +5,30 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Job
 import net.edgwbs.bookstorage.R
 import net.edgwbs.bookstorage.databinding.FragmentBookDetailBinding
-import net.edgwbs.bookstorage.model.BookResponse
-import net.edgwbs.bookstorage.model.HandelError
 import net.edgwbs.bookstorage.utils.ErrorFeedback
 import net.edgwbs.bookstorage.utils.FragmentConstBookID
 import net.edgwbs.bookstorage.viewModel.BookViewModel
-import net.edgwbs.bookstorage.viewModel.RequestCallback
-import org.xml.sax.ErrorHandler
+import net.edgwbs.bookstorage.viewModel.LoadState
 
-class BookDetailFragment : Fragment() {
+class BookDetailFragment : BaseFragment() {
     private val viewModel: BookViewModel by lazy {
         ViewModelProviders.of(this).get(BookViewModel::class.java)
     }
     private lateinit var binding: FragmentBookDetailBinding
     private var bookIDLong: Long? = null
-    private val errorFeedbackHandler = MutableLiveData<ErrorFeedback>()
-    private val loadState: MutableLiveData<LoadState> = MutableLiveData()
     private val bookStateLoadState: MutableLiveData<LoadState> = MutableLiveData()
+
+    override fun layoutId() = R.layout.fragment_book_detail
+    override fun lifecycleOwner() = viewLifecycleOwner
+    override fun setBool(b: Boolean) {
+        binding.isLoading = b
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,8 +37,8 @@ class BookDetailFragment : Fragment() {
     ): View? {
         val bundle = arguments
         val bookID = bundle!!.getString(FragmentConstBookID)
-
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_book_detail, container, false)
+        super.onCreateView(inflater, container, savedInstanceState)
+        binding = super.getBinding() as FragmentBookDetailBinding
 
         binding.isLoading = true
         binding.isStateChangeLoading = false
@@ -124,10 +122,4 @@ class BookDetailFragment : Fragment() {
         viewModel.cancelJob()
         fragmentManager?.popBackStack()
     }
-}
-
-
-enum class LoadState{
-    Loading,
-    Loaded
 }

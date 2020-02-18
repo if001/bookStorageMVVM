@@ -10,10 +10,7 @@ import androidx.paging.PagedList
 import kotlinx.coroutines.*
 import net.edgwbs.bookstorage.model.*
 import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
-import net.edgwbs.bookstorage.repositories.db.BooksDB
-import net.edgwbs.bookstorage.repositories.api.BookRepository
 import net.edgwbs.bookstorage.utils.ErrorFeedback
-import net.edgwbs.bookstorage.view.LoadState
 
 class BookListViewModel(application: Application): AndroidViewModel(application) {
     private val perPage: Int = 10
@@ -21,13 +18,12 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
     private val booksRepository: BookRepositoryFactory = BookRepositoryFactory.getInstance(application)
 
     private lateinit var bookPagedList: LiveData<PagedList<Book>>
-    // todo loadingstateに変更する
-    val networkState = MutableLiveData<NetworkState>()
     private lateinit var bookDataSourceFactory: BookDataSourceFactory
     private lateinit var bookBoundaryCallback: BookBoundaryCallback
 
 
-    fun createDataSource(errorFeedbackHandler: MutableLiveData<ErrorFeedback>) {
+    fun createDataSource(errorFeedbackHandler: MutableLiveData<ErrorFeedback>,
+                         loadState: MutableLiveData<LoadState>) {
         val pagedListConfig = PagedList.Config.Builder()
             .setPageSize(perPage)
             .setInitialLoadSizeHint(perPage)
@@ -37,9 +33,9 @@ class BookListViewModel(application: Application): AndroidViewModel(application)
         bookBoundaryCallback = BookBoundaryCallback(
             viewModelScope,
             booksRepository,
-            networkState,
             perPage,
-            errorFeedbackHandler
+            errorFeedbackHandler,
+            loadState
         )
         bookPagedList = LivePagedListBuilder(bookDataSourceFactory, pagedListConfig)
             .setBoundaryCallback(bookBoundaryCallback)

@@ -10,7 +10,6 @@ import net.edgwbs.bookstorage.repositories.BookRepositoryFactory
 import net.edgwbs.bookstorage.utils.ApplicationErrorException
 import net.edgwbs.bookstorage.utils.BadRequestException
 import net.edgwbs.bookstorage.utils.ErrorFeedback
-import net.edgwbs.bookstorage.view.LoadState
 import java.net.ConnectException
 
 object BookModelCommon {
