@@ -58,11 +58,11 @@ abstract class BaseFragment: Fragment() {
                 when(state) {
                     LoadState.Loaded -> {
                         //binding.isLoading = true
-                        setBool(true)
+                        setBool(false)
                     }
                     LoadState.Loading -> {
                         // binding.isLoading = false
-                        setBool(false)
+                        setBool(true)
                     }
                     else -> {
                         // binding.isLoading = false

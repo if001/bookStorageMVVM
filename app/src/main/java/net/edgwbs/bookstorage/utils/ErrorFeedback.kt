@@ -21,6 +21,9 @@ sealed class ErrorFeedback {
     object DataNotFoundErrorFeedback: ErrorFeedback() {
         override fun getMessage(): String = "data not found"
     }
+    object AuthError: ErrorFeedback() {
+        override fun getMessage(): String = "auth error"
+    }
 }
 
 data class DatabaseNotReachException(val msg: String?): RuntimeException("database not reach: $msg")
